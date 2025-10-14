@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "Stock.h"
 #ifndef IPORTFOLIOMANAGER_H
 #define IPORTFOLIOMANAGER_H
 
@@ -8,7 +9,7 @@
 class IPortfolioManager {
     private:
         //string type depends on T212
-        std::vector<std::string> stocks;
+        std::vector<Stock> stocks;
 
         //some sort of sort function and update/inital create 
 

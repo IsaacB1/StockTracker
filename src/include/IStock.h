@@ -19,33 +19,26 @@
 #define ISTOCK_H
 
 class IStock{
-    private:
-        float avgPrice;
-        float currPrice;
-        std::string stockInfo; //stuff like when bought
-        float quantity;
-        std::string uniqueID;
 
     public:
-        IStock(float avgPrice, float currPrice, std::string stockInfo, float quantity, std::string uniqueID);
-        ~IStock();
+        virtual ~IStock();
 
         //not sure about setters???
 
-        float getAvgPrice();
-        void setAvgPrive(float newAvgPrice);
+        virtual float getAvgPrice() const = 0;
+        virtual void setAvgPrive(float newAvgPrice) = 0;
 
-        float getCurrPrice();
-        void setCurrPrice(float newCurrPrice);
+        virtual float getCurrPrice() const = 0;
+        virtual void setCurrPrice(float newCurrPrice) = 0;
 
-        std::string getStockInfo();
-        void setStockInfo(std::string newStockInfo);
+        virtual std::string getStockInfo() const = 0;
+        virtual void setStockInfo(std::string newStockInfo) = 0;
 
-        float getQuantity();
-        void setQuantity(float newQuantity);
+        virtual float getQuantity() const = 0;
+        virtual void setQuantity(float newQuantity) = 0;
 
-        std::string getUniqueID();
-        void setUniqueID(std::string newUniqueID);
+        virtual std::string getUniqueID() const = 0;
+        virtual void setUniqueID(std::string newUniqueID) = 0;
 };
 
 #endif
