@@ -1,5 +1,6 @@
 #include "Stock.h"
 #include <string> 
+
 class Stock : public IStock {
 
     private:
