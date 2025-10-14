@@ -15,10 +15,10 @@
     }
 ]*/
 #include <string>
-#ifndef STOCK_H
-#define STOCK_H
+#ifndef ISTOCK_H
+#define ISTOCK_H
 
-class Stock{
+class IStock{
     private:
         float avgPrice;
         float currPrice;
@@ -27,8 +27,8 @@ class Stock{
         std::string uniqueID;
 
     public:
-        Stock(float avgPrice, float currPrice, std::string stockInfo, float quantity, std::string uniqueID);
-        ~Stock();
+        IStock(float avgPrice, float currPrice, std::string stockInfo, float quantity, std::string uniqueID);
+        ~IStock();
 
         //not sure about setters???
 

@@ -1,11 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#ifndef PORTFOLIOMANAGER_H
-#define PORTFOLIOMANAGER_H
+#ifndef IPORTFOLIOMANAGER_H
+#define IPORTFOLIOMANAGER_H
 
 
-class PortfolioManager {
+class IPortfolioManager {
     private:
         //string type depends on T212
         std::vector<std::string> stocks;
@@ -14,12 +14,12 @@ class PortfolioManager {
 
     public:
         //need to pass some input from APi to fill stocks vector
-        PortfolioManager();
+        IPortfolioManager();
         
         //need to pass aome input here as well
-        bool PortfolioManager::update();
+        bool IPortfolioManager::update();
 
-        ~PortfolioManager();
+        ~IPortfolioManager();
 }; 
 
 #endif
