@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.10)
+project(isaacStocks VERSION 1.0 LANGUAGES CXX)
+
+# Require C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Fix macOS version warning
+set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0")
+
+# Find OpenSSL
+find_package(OpenSSL REQUIRED)
+#find_package(laserpants_dotenv)
+
+# Add executable
+add_executable(isaacStocks
+    src/main.cpp
+    src/HttpLibWrap.cpp
+)
+
+# Include directories
+target_include_directories(isaacStocks PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/include
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+# Link OpenSSL libraries - THIS WAS MISSING!
+target_link_libraries(isaacStocks 
+    OpenSSL::SSL 
+    OpenSSL::Crypto
+)
