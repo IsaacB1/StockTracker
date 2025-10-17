@@ -12,7 +12,7 @@ struct APIResponse{
 class IAPIClient {
     public:
         virtual ~IAPIClient() = default;
-        virtual APIResponse get(const std::string& endpoint) = 0;
+        virtual APIResponse get(const   std::string_view& endpoint) = 0;
 };
 
 #endif

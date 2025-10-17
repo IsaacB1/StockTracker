@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include "HttpLibWrap.h"
 #include <string>
+#include <string_view>
+#include <sstream>
+
 
 //need to add API secrets now
 HttpLibWrap::HttpLibWrap(const std::string& host) : cli(host.c_str()){
@@ -27,16 +30,17 @@ HttpLibWrap::HttpLibWrap(const std::string& host) : cli(host.c_str()){
     std::cout << "api_host constructed" << std::endl;
 }   
 //nmeed to implement requests now
-APIResponse HttpLibWrap::get(const std::string& endpoint) {
+APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {
     std::cout << endpoint << std::endl;
 
-    auto request = cli.Get(endpoint.c_str());
+    auto request = cli.Get(std::string(endpoint));
 
     //if it succeeded
     if(!request){
         auto err = request.error(); 
-        std::cerr << "Request failed, error = " << httplib::to_string(err) << std::endl;
-        throw std::runtime_error("HTTP call failed for " + endpoint);
+        std::ostringstream oss;
+        oss << "HTTP call failed for " << endpoint;
+        throw std::runtime_error(oss.str());
     }
 
     APIResponse response;
