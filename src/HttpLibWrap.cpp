@@ -7,27 +7,15 @@
 #include <string>
 #include <string_view>
 #include <sstream>
+#include "AccountSubType.h"
+#include <dotenv.h>
 
 
 //need to add API secrets now
-HttpLibWrap::HttpLibWrap(const std::string& host) : cli(host.c_str()){
+HttpLibWrap::HttpLibWrap(const std::string& host, const AccountSubType& type) : cli(host.c_str()){
     cli.enable_server_certificate_verification(false);
-            
-    std::string credentials = std::string(std::getenv("API_KEY_ID")) + ":" + std::string(std::getenv("API_SECRET"));
-
-    std::string encoded = to_base64(credentials);
-
-
-    httplib::Headers headers = {{"Authorization", "Basic " + encoded}};
-
-    cli.set_default_headers(headers);
-
-    //timeouts for reading writing and connection
-    cli.set_read_timeout(5, 0);
-    cli.set_write_timeout(5, 0);
-    cli.set_connection_timeout(5, 0); 
-
-    std::cout << "api_host constructed" << std::endl;
+    std::cout << "AHHHHHHH" << std::endl;
+    this->updateAccountSubType(type);
 }   
 //nmeed to implement requests now
 APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {
@@ -55,4 +43,36 @@ APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {
     failed.status = request->status;
     failed.body = "Request failed";
     return failed;
+}
+
+void HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
+    dotenv::init();
+    std::string credentials;
+    //set account type
+    //NEED TO PUT TRYS ROUND HERE 
+    switch(type){
+        case AccountSubType::Stocks:
+            credentials = std::string(std::getenv("API_KEY_IDSTOCKS")) + ":" + std::string(std::getenv("API_SECRET_STOCKS"));
+            break;
+        default:
+            std::cout << "Before setting type" << std::endl;
+            credentials = std::string(std::getenv("API_KEY_ID_STOCKSISA")) + ":" + std::string(std::getenv("API_SECRET_STOCKSISA"));
+            std::cout << "After setting type" << std::endl;
+            break;
+    }
+
+
+    std::string encoded = to_base64(credentials);
+
+
+    httplib::Headers headers = {{"Authorization", "Basic " + encoded}};
+
+    cli.set_default_headers(headers);
+
+    //timeouts for reading writing and connection
+    cli.set_read_timeout(5, 0);
+    cli.set_write_timeout(5, 0);
+    cli.set_connection_timeout(5, 0); 
+
+    std::cout << "api_host constructed" << std::endl;
 }

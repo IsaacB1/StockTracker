@@ -10,12 +10,13 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0")
 
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
-#find_package(laserpants_dotenv)
 
 # Add executable
 add_executable(isaacStocks
     src/main.cpp
+    src/PortfolioManager.cpp
     src/HttpLibWrap.cpp
+	
 )
 
 # Include directories
