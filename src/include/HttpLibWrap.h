@@ -9,13 +9,13 @@
 class HttpLibWrap : public IAPIClient{
     private:
         httplib::SSLClient cli;
-        std::string accountInfo = "/equity/account/cash";
 
     public:
-        HttpLibWrap(const std::string& host);
+        HttpLibWrap(const std::string& host, const AccountSubType& type);
         ~HttpLibWrap() = default;
         APIResponse get(const std::string_view& endpoint);
         //wont be implemented but could be used to connet to my server to store data
+        void updateAccountSubType(const AccountSubType& newType) noexcept;
 };
 
 #endif

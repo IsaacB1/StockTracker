@@ -3,31 +3,19 @@
 #include <string>
 #include <dotenv.h>
 #include <string_view>
+#include "AccountSubType.h"
+#include "PortfolioManager.h"
 
 
 int main() {
     dotenv::init();
+    const AccountSubType accountSubType = AccountSubType::StocksISA;
 
-    constexpr std::string_view StocksISAEnpoint = "/api/v0/equity/account/cash";
+    //create APIWrapper class
+    std::cout << "HDHDHDH" << std::endl;
+    HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"), accountSubType);
 
-    std::cout << "Hello" << std::endl;
-    const char* api_host = std::getenv("API_HOST");
-    
-    if(!api_host){
-        std::cout << "failed to get from .env file" << std::endl;
-        return 1;
-    }else{
-            HttpLibWrap call = HttpLibWrap(api_host);
-        try{
-            APIResponse response;
-            response = call.get(StocksISAEnpoint);
-            std::cout << response.status;
-            std::cout << response.body;
-        }catch(const std::runtime_error e){
-            std::cerr << "Caught exception: " << e.what() << std::endl;
-            return 1;
-        }
+    PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI);
 
-        return 0;
-    }
+    return 0;
 }
