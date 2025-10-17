@@ -7,7 +7,7 @@
 int main() {
     dotenv::init();
 
-    std::string accountInfoEndpoint = "/equity/account/cash";
+    std::string accountInfoEndpoint = "/api/v0/equity/account/cash";
 
     std::cout << "Hello" << std::endl;
     const char* api_host = std::getenv("API_HOST");
@@ -16,12 +16,17 @@ int main() {
         std::cout << "failed to get from .env file" << std::endl;
         return 1;
     }else{
-        HttpLibWrap call = HttpLibWrap(api_host);
+            HttpLibWrap call = HttpLibWrap(api_host);
+        try{
+            APIResponse response;
+            response = call.get(accountInfoEndpoint);
+            std::cout << response.status;
+            std::cout << response.body;
+        }catch(const std::runtime_error e){
+            std::cerr << "Caught exception: " << e.what() << std::endl;
+            return 1;
+        }
 
-        APIResponse response;
-        response = call.get(accountInfoEndpoint);
-        std::cout << response.status;
-        std::cout << response.body;
         return 0;
     }
 }
