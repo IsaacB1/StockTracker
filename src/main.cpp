@@ -2,12 +2,13 @@
 #include "HttpLibWrap.h"
 #include <string>
 #include <dotenv.h>
+#include <string_view>
 
 
 int main() {
     dotenv::init();
 
-    std::string accountInfoEndpoint = "/api/v0/equity/account/cash";
+    constexpr std::string_view StocksISAEnpoint = "/api/v0/equity/account/cash";
 
     std::cout << "Hello" << std::endl;
     const char* api_host = std::getenv("API_HOST");
@@ -19,7 +20,7 @@ int main() {
             HttpLibWrap call = HttpLibWrap(api_host);
         try{
             APIResponse response;
-            response = call.get(accountInfoEndpoint);
+            response = call.get(StocksISAEnpoint);
             std::cout << response.status;
             std::cout << response.body;
         }catch(const std::runtime_error e){
