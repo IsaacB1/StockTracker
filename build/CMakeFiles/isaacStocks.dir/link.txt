@@ -1,1 +1,0 @@
-/usr/bin/c++  -mmacosx-version-min=15.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/isaacStocks.dir/src/main.cpp.o CMakeFiles/isaacStocks.dir/src/HttpLibWrap.cpp.o -o isaacStocks  /usr/local/Cellar/openssl@3/3.6.0/lib/libssl.dylib /usr/local/Cellar/openssl@3/3.6.0/lib/libcrypto.dylib
