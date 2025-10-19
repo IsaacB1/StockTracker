@@ -12,10 +12,10 @@
 
 
 //need to add API secrets now
-HttpLibWrap::HttpLibWrap(const std::string& host, const AccountSubType& type) : cli(host.c_str()){
+HttpLibWrap::HttpLibWrap(const std::string& host) : cli(host.c_str()){
     cli.enable_server_certificate_verification(false);
     std::cout << "AHHHHHHH" << std::endl;
-    this->updateAccountSubType(type);
+
 }   
 //nmeed to implement requests now
 APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {

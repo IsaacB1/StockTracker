@@ -11,7 +11,7 @@ class HttpLibWrap : public IAPIClient{
         httplib::SSLClient cli;
 
     public:
-        HttpLibWrap(const std::string& host, const AccountSubType& type);
+        HttpLibWrap(const std::string& host);
         ~HttpLibWrap() = default;
         APIResponse get(const std::string_view& endpoint);
         //wont be implemented but could be used to connet to my server to store data

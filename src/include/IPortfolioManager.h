@@ -8,9 +8,9 @@
 #define IPORTFOLIOMANAGER_H
 
 struct AccountValue{
-    int invested;
-    int value;
-    int totalMade;
+    double invested;
+    double value;
+    double totalMade;
 };
 
 
