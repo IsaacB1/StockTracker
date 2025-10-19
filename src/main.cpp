@@ -13,7 +13,7 @@ int main() {
 
     //create APIWrapper class
     std::cout << "HDHDHDH" << std::endl;
-    HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"), accountSubType);
+    HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"));
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI);
 
