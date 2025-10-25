@@ -102,6 +102,7 @@ bool PortfolioManager::getAccountHistory(){
             APIResponse historyResponse;
             try{
                 int maxRetries = 30;
+                //1 Minute as thats what the API limits this to
                 int retryDelayMs = 60000;
 
                 for (int i = 0; i < maxRetries; ++i) {
@@ -158,6 +159,11 @@ bool PortfolioManager::getAccountHistory(){
 
                 std::cout << link << std::endl;
 
+                try{
+                    std::string accountInfoFileName = apiController.downloadCSV(link);
+                }catch(const std::runtime_error& e){
+                    std::cerr << e.what() << std::endl;
+                }
             }catch(const json::parse_error& e){
                 std::cerr << "JSON parse error when trying to parse historyAPI response " << e.what() << std::endl;
             }
@@ -169,3 +175,4 @@ bool PortfolioManager::getAccountHistory(){
     }
     return false;
 }
+

@@ -19,6 +19,7 @@ class HttpLibWrap : public IAPIClient{
         APIResponse post(const std::string_view& endpoint, const json body);
         //wont be implemented but could be used to connet to my server to store data
         void updateAccountSubType(const AccountSubType& newType) noexcept;
+        std::string downloadCSV(const std::string& link);
 };      
 
 #endif
