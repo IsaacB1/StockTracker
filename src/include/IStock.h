@@ -21,24 +21,14 @@
 class IStock{
 
     public:
-        virtual ~IStock();
+        virtual ~IStock() = default;
 
-        //not sure about setters???
-
-        virtual float getAvgPrice() const = 0;
-        virtual void setAvgPrive(float newAvgPrice) = 0;
-
-        virtual float getCurrPrice() const = 0;
-        virtual void setCurrPrice(float newCurrPrice) = 0;
-
-        virtual std::string getStockInfo() const = 0;
-        virtual void setStockInfo(std::string newStockInfo) = 0;
-
-        virtual float getQuantity() const = 0;
-        virtual void setQuantity(float newQuantity) = 0;
-
-        virtual std::string getUniqueID() const = 0;
-        virtual void setUniqueID(std::string newUniqueID) = 0;
+        virtual std::string getDateExecuted()noexcept = 0;
+        virtual std::string getDateCreated()noexcept = 0;
+        virtual std::string getDateModified()noexcept = 0;
+        virtual std::string getStockName()noexcept = 0;
+        virtual double getFilledQuantity()noexcept = 0;
+        virtual double getFilledPrice() noexcept = 0;
 };
 
 #endif

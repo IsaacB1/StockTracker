@@ -6,30 +6,28 @@
 class Stock : public IStock{
 
     private:
-        float avgPrice;
-        float currPrice;
-        std::string stockInfo; //stuff like when bought
-        float quantity;
-        std::string uniqueID;
+        std::string dateCreated;
+        std::string dateExecuted;
+        std::string dateModified;
+
+        //how many shares
+        double filledQuantity;
+        //price of share
+        double filledPrice;
+        std::string stockName;
 
     public:
+        Stock(const std::string& dateCreated,const std::string& dateExecuted,const std::string& dateModified,const double& filledQuantity,const double& filledPrice,const std::string& stockName);
 
-        Stock(float avgPrice, float currPrice, std::string stockInfo, float quantity, std::string uniqueID);
+        //getters
+        std::string getDateExecuted() noexcept;
+        std::string getDateCreated() noexcept;
+        std::string getDateModified() noexcept;
+        std::string getStockName() noexcept;
+        double getFilledQuantity() noexcept;
+        double getFilledPrice() noexcept;
 
-        virtual float getAvgPrice() const override;
-        virtual void setAvgPrive(float newAvgPrice) override;
-
-        virtual float getCurrPrice() const override;
-        virtual void setCurrPrice(float newCurrPrice) override;
-
-        virtual std::string getStockInfo() const override;
-        virtual void setStockInfo(std::string newStockInfo) override;
-
-        virtual float getQuantity() const override;
-        virtual void setQuantity(float newQuantity) override;
-
-        virtual std::string getUniqueID() const override;
-        virtual void setUniqueID(std::string newUniqueID) override;
+        ~Stock() = default;
 };
 
 #endif
