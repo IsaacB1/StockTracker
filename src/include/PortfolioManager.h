@@ -10,6 +10,7 @@ class PortfolioManager : IPortfolioManager{
         AccountSubType type;
         //create an instance of HttpLibWrap here so DIP observed but also makes it easy to then change out calls?
         HttpLibWrap& apiController;
+        std::string accountHistoryFileLocation;
 
     public:
         PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController);

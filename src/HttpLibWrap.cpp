@@ -9,7 +9,9 @@
 #include <sstream>
 #include "AccountSubType.h"
 #include <dotenv.h>
+#include <fstream>
 #include <json.hpp>
+#include <filesystem>
 
 using json = nlohmann::json;
 
@@ -91,4 +93,34 @@ void HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
     cli.set_connection_timeout(5, 0); 
 
     std::cout << "api_host constructed" << std::endl;
+}
+
+std::string HttpLibWrap::downloadCSV(const std::string& link){
+
+    int schemeEnd = link.find("://");
+    if (schemeEnd == std::string::npos) throw std::runtime_error("Invalid URL");
+    
+    int hostStart = schemeEnd + 3;
+    int pathStart = link.find('/', hostStart);
+        
+    std::string host = link.substr(hostStart, pathStart - hostStart);
+    std::string pathAndQuery = link.substr(pathStart);
+    
+    httplib::SSLClient cli(host);
+    auto res = cli.Get(pathAndQuery.c_str());
+
+    if (res && res->status == 200) {
+        std::string filePath = "./data/";
+        std::filesystem::path fullPath = filePath + "accountInfo.csv";
+
+        // Create directory if needed
+        std::filesystem::create_directories(filePath);
+
+        std::ofstream accountInfoFile(fullPath);
+        accountInfoFile << res->body;
+        return "accountInfo.csv";
+
+    }else{ 
+        throw std::runtime_error("Failed to download CSV file thrown status " +  (res ? std::to_string(res->status) : "no response"));
+    }
 }
