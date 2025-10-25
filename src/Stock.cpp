@@ -1,31 +1,14 @@
 #include "Stock.h"
+#include "IStock.h"
 #include <string> 
 
-class Stock : public IStock {
+Stock::Stock(const std::string& dateCreated,const std::string& dateExecuted,const std::string& dateModified,const double& filledQuantity,const double& filledPrice,const std::string& stockName) : dateCreated(dateCreated), dateExecuted(dateExecuted),dateModified(dateModified), filledQuantity(filledQuantity), filledPrice(filledPrice),stockName(stockName) {}
 
-    private:
-        float avgPrice;
-        float currPrice;
-        std::string stockInfo;
-        float quantity;
-        std::string uniqueID;
 
-    public:
-        Stock(float avgPrice, float currPrice, std::string stockInfo, float quantity, std::string uniqueID)
-            : avgPrice(avgPrice), currPrice(currPrice), stockInfo(stockInfo), quantity(quantity), uniqueID(uniqueID) {};
-
-        float getAvgPrice() const { return this->avgPrice; }
-        void setAvgPrice( float newAvgPrice ) {avgPrice = newAvgPrice;}
-
-        float getCurrPrice() const { return this->currPrice; }
-        void setCurrPrice( float newCurrPrice ) {currPrice = newCurrPrice;}
-
-        std::string getStockInfo() const { return this->stockInfo; }
-        void setStockInfo( float newStockInfo ) {stockInfo = newStockInfo;}
-
-        float quantity() const { return this->quantity; }
-        void setQuantity( float newQuantity ) {quantity = newQuantity;}
-
-        std::string getUniqueID() const { return this->uniqueID; }
-        void setUniquID( float newUniqueID) {uniqueID = newUniqueID;}
-};
+std::string Stock::getDateCreated() noexcept {return this->dateCreated;}
+std::string Stock::getDateExecuted() noexcept{return this->dateExecuted;}
+std::string Stock::getDateModified() noexcept{return this->dateModified;}
+std::string Stock::getStockName() noexcept{return this->stockName;}
+double Stock::getFilledQuantity() noexcept{return this->filledQuantity;}
+double Stock::getFilledPrice() noexcept 
+{return this->filledPrice; }

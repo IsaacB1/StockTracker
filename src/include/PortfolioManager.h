@@ -17,6 +17,8 @@ class PortfolioManager : IPortfolioManager{
         bool update(Stock newStock);
         //wont be implemented but could be used to connet to my server to store data
         void updateAccountSubType(const AccountSubType& newType) noexcept;
+        bool getAccountInfo();
+        bool getAccountHistory();
 };
 
-#endif
+#endif  

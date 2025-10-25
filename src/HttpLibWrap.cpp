@@ -9,21 +9,20 @@
 #include <sstream>
 #include "AccountSubType.h"
 #include <dotenv.h>
+#include <json.hpp>
 
+using json = nlohmann::json;
 
 //need to add API secrets now
 HttpLibWrap::HttpLibWrap(const std::string& host) : cli(host.c_str()){
     cli.enable_server_certificate_verification(false);
-    std::cout << "AHHHHHHH" << std::endl;
 
 }   
 //nmeed to implement requests now
 APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {
-    std::cout << endpoint << std::endl;
-
     auto request = cli.Get(std::string(endpoint));
 
-    //if it succeeded
+    //if it failed
     if(!request){
         auto err = request.error(); 
         std::ostringstream oss;
@@ -36,15 +35,32 @@ APIResponse HttpLibWrap::get(const   std::string_view& endpoint) {
     response.body = request->body;
     return response;
 
-    std::cout << "request failed to construct" << std::endl;
-    //if not
-    //in future logger erro here
-    APIResponse failed;
-    failed.status = request->status;
-    failed.body = "Request failed";
-    return failed;
 }
 
+APIResponse HttpLibWrap::post(const   std::string_view& endpoint, json body) {
+    //need to add headers, post
+    std::cout << "Properly starting post call jere" << std::endl;
+
+    std::string stringBody = body.dump();
+    std::cout << std::string(endpoint) << stringBody << "application/json" << std::endl;
+    auto request = cli.Post(std::string(endpoint), stringBody, "application/json");
+
+    //if it failed
+    if(!request){
+        auto err = request.error(); 
+        std::ostringstream oss;
+        oss << "HTTP call failed for " << endpoint;
+        throw std::runtime_error(oss.str());
+    }
+    //only one use case for post atm but can change accordingly
+    std::cout << request->body << std::endl;
+    APIResponse response;
+    response.status = request->status;
+    response.body = request->body;
+    return response;
+
+
+}
 void HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
     dotenv::init();
     std::string credentials;
