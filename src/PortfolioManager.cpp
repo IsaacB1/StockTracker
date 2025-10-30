@@ -98,6 +98,9 @@ bool PortfolioManager::getAccountHistory(){
             //endpoint = endpoint + "/" + std::to_string(requestId);
             std::cout << endpoint << std::endl;
 
+            //chill for 20 seconds as it takes a sec to get the report ready
+            std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+
             //sort out here may need to do a time out as 404 means it hasnt generated the page yet
             APIResponse historyResponse;
             try{
@@ -113,7 +116,7 @@ bool PortfolioManager::getAccountHistory(){
                         json historyApiResponse = json::parse(historyResponse.body);
                         const json latestReport = historyApiResponse.back();
                         if (latestReport["status"] != "Finished"){
-                            std::cout << "Report Not ready yet waiting one minute" << std::endl;
+                            std::cout << "Report Not ready yet waiting 20 seconds minute" << std::endl;
                             std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
                         }else{
                             break;
@@ -122,6 +125,8 @@ bool PortfolioManager::getAccountHistory(){
                         std::cout << "Export not ready yet (status 404), retrying..." << std::endl;
                         std::cout << "Potiential body " << historyResponse.body << std::endl;
                         std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
+                    } else if (historyResponse.status == 429){
+                        throw std::runtime_error("Too many requests");
                     } else {
                         std::cerr << "Unexpected status: " << historyResponse.status << std::endl;
                         break;
