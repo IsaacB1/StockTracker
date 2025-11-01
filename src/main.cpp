@@ -5,6 +5,8 @@
 #include <string_view>
 #include "AccountSubType.h"
 #include "PortfolioManager.h"
+#include "CSVReportReader.h"
+
 
 
 int main() {
@@ -15,12 +17,17 @@ int main() {
     try{
         HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"));
 
-        PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI);
+        CSVReportReader CSVReader = CSVReportReader();
+
+        PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader);
 
         StocksISAManager.getAccountInfo();
 
         std::cout << "getting accout history" << std::endl;
         StocksISAManager.getAccountHistory();
+
+        //create document reader and read in data
+        //NEED TO CHANGE PORTFOLIO MANAGER TO ACCEPT INSTANCE OF PORTFOLIO MANAGER!!!!
 
     }catch(const std::runtime_error& e){
         std::cerr << "Failed to get .env value - API host: " << e.what() << std::endl;

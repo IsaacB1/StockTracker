@@ -118,7 +118,7 @@ std::string HttpLibWrap::downloadCSV(const std::string& link){
 
         std::ofstream accountInfoFile(fullPath);
         accountInfoFile << res->body;
-        return "accountInfo.csv";
+        return fullPath;
 
     }else{ 
         throw std::runtime_error("Failed to download CSV file thrown status " +  (res ? std::to_string(res->status) : "no response"));

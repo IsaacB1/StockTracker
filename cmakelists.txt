@@ -17,6 +17,7 @@ add_executable(isaacStocks
     src/PortfolioManager.cpp
     src/HttpLibWrap.cpp
 	src/Stock.cpp
+    src/CSVReportReader.cpp
 )
 
 # Include directories
