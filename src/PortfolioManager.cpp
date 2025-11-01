@@ -7,8 +7,8 @@
 #include <thread>
 
 // Implementation of PortfolioManager constructor
-PortfolioManager::PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController)
-	: type(type), apiController(apiController){
+PortfolioManager::PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController, CSVReportReader& CSVReader)
+	: type(type), apiController(apiController), CSVReader(CSVReader){
         //we need to call get of apiController to start and populate values
         apiController.updateAccountSubType(type);
 
@@ -165,7 +165,13 @@ bool PortfolioManager::getAccountHistory(){
                 std::cout << link << std::endl;
 
                 try{
-                    std::string accountInfoFileName = apiController.downloadCSV(link);
+                    std::string filePath = apiController.downloadCSV(link);
+
+                    if (this->readInCSV(filePath)){
+
+                    }else{
+
+                    }
                 }catch(const std::runtime_error& e){
                     std::cerr << e.what() << std::endl;
                 }
@@ -181,3 +187,12 @@ bool PortfolioManager::getAccountHistory(){
     return false;
 }
 
+bool PortfolioManager::readInCSV(const std::string& filePath){
+    this->CSVReader.setFilePath(filePath);
+
+    if(this->CSVReader.readInFile()){
+        return true;
+    }else{
+        return false;
+    }
+}

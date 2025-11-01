@@ -6,8 +6,9 @@
 #define IDOCUMENTREADER_H
 
 class IDocumentReader {
-    void readInDocument(const std::string& filePath);
-    ~IDocumentReader() = default;
+    public:
+        void readInDocument(const std::string& filePath);
+        ~IDocumentReader() = default;
 };
 
 #endif
