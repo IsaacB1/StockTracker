@@ -4,68 +4,68 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <variant>
 #include "IDocumentReader.h"
 
 //specifc time struct
-struct Time{
+struct Time {
     std::string date;
     std::string specificTime;
-
+    std::string print() const {
+        return  "Time at " + date + " " + specificTime;
+    };
 };
+
+/*
+enum class Action {
+    Action() = default;
+    virtual ~Action() = default;
+    virtual void print() const = 0;
+    Action(const Action&) = default;
+    Action(Action&&) = default;
+    Time time;
+    std::string id;
+};*/
 
 // These are structs for differnet actions that have happened
-
 struct Deposit{
-    Time depositTime;
-    std::string id;
     double total;
+    std::string id;
     std::string currency;
+    Time time;
+    void print() const {
+        std::cout << "Deposit - Time: " << time.print() << ", ID: " << id 
+        << ", Total: " << total 
+        << " " << currency << std::endl;
+    }
 };
 
-struct MarketBuy{
-    Time depositTime;
+struct MarketBuy {
+    std::string id;
+    Time time;
     std::string ISIN;
     std::string ticker;
     std::string Name;
-    std::string ID;
     double NoShares;
     double pricePerShare;
     std::string currencyPricePerShare;
     double exchangeRate;
     double total;
     std::string currency;
+
+    void print() const {
+        std::cout << "Market Buy - Time: " << time.print()
+        << ", ID: " << id
+        << ", Ticker: " << ticker
+        << ", Shares: " << NoShares
+        << ", Price: " << pricePerShare << " Currency for price per share: " << currencyPricePerShare
+        << ", Total: " << total << " Currency: " 
+        << currency << std::endl;
+    }
 };
 
-//Not implemented need to do more research on the fiekds
-struct MarketSell{
-
-};
-
-struct Sell{
-
-};
-
-struct Withdraw{
-
-};
-
-struct Dividend{
-
-};
-
-struct ActionType{
-    Deposit deposit;
-    MarketBuy marketBuy;
-    MarketSell marketSell;
-    Sell sell;
-    Withdraw withdraw;
-    Dividend div;
-
-    ActionType() {}
-    ~ActionType() {}
-    ActionType(const ActionType&) = default;
-    ActionType& operator=(const ActionType&) = default;
-};
+//this creates type Action with all the subtypes valid
+using Action = std::variant<Deposit, MarketBuy>;
 
 //NEED TO REFORM STRUCTS
 
@@ -74,7 +74,7 @@ class CSVReportReader : public IDocumentReader {
 
     private:
         std::string filePath;
-        std::vector<ActionType> actions;
+        std::vector<Action> actions;
 
     public:
         CSVReportReader();
@@ -82,6 +82,7 @@ class CSVReportReader : public IDocumentReader {
 
         bool readInFile();
         void setFilePath(const std::string& filePath) noexcept;
-        std::vector<std::string> splitField(const std::string& line);
+        void createAction(const std::string& line);
+        void valueActionIterator(const std::vector<std::string>& values);
 };
 #endif
