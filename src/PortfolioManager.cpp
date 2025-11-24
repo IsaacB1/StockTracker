@@ -2,13 +2,13 @@
 #include "PortfolioManager.h"
 #include <dotenv.h>
 #include <json.hpp>
-#include "Stock.h"
+#include "PortfolioStats.h"
 #include <chrono>
 #include <thread>
 
 // Implementation of PortfolioManager constructor
-PortfolioManager::PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController, CSVReportReader& CSVReader)
-	: type(type), apiController(apiController), CSVReader(CSVReader){
+PortfolioManager::PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController, CSVReportReader& CSVReader, PortfolioStats& stats)
+    : type(type), apiController(apiController), CSVReader(CSVReader), stats(stats){
         //we need to call get of apiController to start and populate values
         apiController.updateAccountSubType(type);
 
@@ -35,17 +35,14 @@ bool PortfolioManager::getAccountInfo(){
 
         if(response.status == 200){
 
-            AccountValue callVal;
             std::cout << response.body <<std::endl;
             //Using json.hpp to parse the json 
             try{
                 json apiResponse = json::parse(response.body);
 
-                callVal.invested = apiResponse["invested"];
-                callVal.value = apiResponse["total"];
-                callVal.totalMade = (callVal.value - callVal.invested);
-                    
-                std::cout << "callVals - invested: " << callVal.invested << " value: "<< callVal.value << " total made: " << callVal.totalMade << std::endl;
+                stats.updateStats(apiResponse["invested"], apiResponse["total"], apiResponse["free"]);
+                stats.printStats();
+
                 return true;
             }catch(const json::parse_error& e){
                 std::cerr << "Failed to parse accountvalue api response: " << e.what() << std::endl;
@@ -142,7 +139,7 @@ bool PortfolioManager::getAccountHistory(){
             try{
 
                 //std::cout << historyResponse.body << std::endl;
-
+                
                 json historyApiResponse = json::parse(historyResponse.body);
 
                 //std::cout << historyApiResponse << std::endl;
@@ -154,6 +151,7 @@ bool PortfolioManager::getAccountHistory(){
                     "includeOrders": true,
                     "includeTransactions": true
                 }, */
+                
                 const json latestReport = historyApiResponse.back();
                 std::cout << latestReport << std::endl;
 
@@ -163,14 +161,15 @@ bool PortfolioManager::getAccountHistory(){
                 std::string timeTo = latestReport["timeTo"];
 
                 std::cout << link << std::endl;
-
+                
                 try{
                     std::string filePath = apiController.downloadCSV(link);
 
                     if (this->readInCSV(filePath)){
-
+                        //success
+                        this->stats.printStats();
                     }else{
-
+                        std::cout << "Error reading file";
                     }
                 }catch(const std::runtime_error& e){
                     std::cerr << e.what() << std::endl;
@@ -190,9 +189,13 @@ bool PortfolioManager::getAccountHistory(){
 bool PortfolioManager::readInCSV(const std::string& filePath){
     this->CSVReader.setFilePath(filePath);
 
-    if(this->CSVReader.readInFile()){
+    try{
+        //reads in file and populates the portfolioStats
+        this->stats.syncStocks(this->CSVReader.readInFile());
         return true;
-    }else{
+
+    }catch(const std::invalid_argument& e){
+        std::cerr << e.what() << std::endl;
         return false;
     }
 }

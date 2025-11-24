@@ -18,17 +18,10 @@
 #ifndef ISTOCK_H
 #define ISTOCK_H
 
-class IStock{
+class IPortfolioStats{
 
     public:
-        virtual ~IStock() = default;
-
-        virtual std::string getDateExecuted()noexcept = 0;
-        virtual std::string getDateCreated()noexcept = 0;
-        virtual std::string getDateModified()noexcept = 0;
-        virtual std::string getStockName()noexcept = 0;
-        virtual double getFilledQuantity()noexcept = 0;
-        virtual double getFilledPrice() noexcept = 0;
+        virtual ~IPortfolioStats() = default;
 };
 
 #endif
