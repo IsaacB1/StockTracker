@@ -9,15 +9,15 @@ CSVReportReader::CSVReportReader() : filePath(), actions(std::vector<Action>()){
 }
 
 //feels like this needs to be propelry returning errors rahter then booleans
-bool CSVReportReader::readInFile(){
+std::vector<Action>& CSVReportReader::readInFile(){
 
     if(filePath.empty()){
-        return false;
+        throw std::invalid_argument("File path empty");
     }
     std::ifstream CSVFile(this->filePath);
 
     if(!CSVFile){
-        return false;
+        throw std::invalid_argument("No file present");
     }
 
     std::string line;
@@ -34,7 +34,7 @@ bool CSVReportReader::readInFile(){
         this->createAction(line);
         
     }
-    return true;
+    return this->actions;
 }
 
 void CSVReportReader::createAction(const std::string& line){
@@ -98,8 +98,6 @@ void CSVReportReader::createAction(const std::string& line){
         throw std::invalid_argument("Unknown action type: " + field);
     }
 }
-
-
 
 void CSVReportReader::setFilePath(const std::string& filePath) noexcept{
     this->filePath = filePath;

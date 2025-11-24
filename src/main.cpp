@@ -6,8 +6,10 @@
 #include "AccountSubType.h"
 #include "PortfolioManager.h"
 #include "CSVReportReader.h"
+#include "PortfolioStats.h"
 
 
+//would be cool to implement multithreding here for API calls
 
 int main() {
     dotenv::init();
@@ -18,8 +20,9 @@ int main() {
         HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"));
 
         CSVReportReader CSVReader = CSVReportReader();
+        PortfolioStats stats = PortfolioStats();
 
-        PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader);
+        PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
         StocksISAManager.getAccountInfo();
 

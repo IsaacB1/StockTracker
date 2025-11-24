@@ -1,7 +1,4 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include "Stock.h"
+#include "PortfolioStats.h"
 #include "AccountSubType.h"
 
 #ifndef IPORTFOLIOMANAGER_H

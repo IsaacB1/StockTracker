@@ -80,7 +80,7 @@ class CSVReportReader : public IDocumentReader {
         CSVReportReader();
         ~CSVReportReader() = default;
 
-        bool readInFile();
+        std::vector<Action>& readInFile();
         void setFilePath(const std::string& filePath) noexcept;
         void createAction(const std::string& line);
         void valueActionIterator(const std::vector<std::string>& values);
