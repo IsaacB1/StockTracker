@@ -1,0 +1,5 @@
+Action,Time,ISIN,Ticker,Name,ID,No. of shares,Price / share,Currency (Price / share),Exchange rate,Currency (Result),Total,Currency (Total)
+Deposit,2025-10-13 16:15:08,,,,da5ba2ce-f087-4610-b8f2-885019e7e4ae,,,,,,10.00,"GBP"
+Market buy,2025-10-14 07:00:39,IE00BFMXXD54,VUAG,"Vanguard S&P 500 (Acc)",EOF40220319765,0.1048547700,95.3700000000,GBP,1.00000000,"GBP",10.00,"GBP"
+Deposit,2025-10-14 13:42:59,,,,b17e104f-d8f1-4c24-a986-0f1665a7395e,,,,,,15990.00,"GBP"
+Market buy,2025-10-14 13:51:16,IE00BFMXXD54,VUAG,"Vanguard S&P 500 (Acc)",EOF40256836679,168.7420852600,94.7600000000,GBP,1.00000000,"GBP",15990.00,"GBP"
