@@ -1,6 +1,7 @@
 #include "IPortfolioManager.h"
 #include "PortfolioManager.h"
 #include <dotenv.h>
+#include "config.hpp"
 #include <json.hpp>
 #include "PortfolioStats.h"
 #include <chrono>
@@ -31,7 +32,7 @@ bool PortfolioManager::getAccountInfo(){
 
     try{
         APIResponse response;
-        response = apiController.get(std::getenv("T212_ACCOUNT_INFO_ENDPOINT"));
+        response = apiController.get(Config::T212_ACCOUNT_INFO_ENDPOINT);
 
         if(response.status == 200){
 
@@ -78,7 +79,7 @@ bool PortfolioManager::getAccountHistory(){
 
     std::cout << "making post call" << std::endl;
     try{
-        APIResponse requestIdResponse = apiController.post(std::getenv("T212_REQUEST_CSV_GEN"), body);
+        APIResponse requestIdResponse = apiController.post(Config::T212_REQUEST_CSV_GEN, body);
         
         try{
             std::cout << requestIdResponse.body << std::endl;
@@ -89,11 +90,10 @@ bool PortfolioManager::getAccountHistory(){
             //need a try here YES I DO
             int requestId = requestIdApiResponse["reportId"].get<int>();
             
-            //also try here for the std::getenv
             //now do the get request 
-            std::string endpoint = std::getenv("T212_REQUEST_CSV_GEN");
+            std::string endpoint = Config::T212_REQUEST_CSV_GEN;
             //endpoint = endpoint + "/" + std::to_string(requestId);
-            std::cout << endpoint << std::endl;
+            ///std::cout << endpoint << std::endl;
 
             //chill for 20 seconds as it takes a sec to get the report ready
             std::this_thread::sleep_for(std::chrono::milliseconds(20000));
