@@ -1,5 +1,6 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"
+#include "config.hpp"
 #include "IAPIClient.h"
 #include "base64.h"
 #include <cstdlib>
@@ -8,7 +9,6 @@
 #include <string_view>
 #include <sstream>
 #include "AccountSubType.h"
-#include <dotenv.h>
 #include <fstream>
 #include <json.hpp>
 #include <filesystem>
@@ -65,22 +65,19 @@ APIResponse HttpLibWrap::post(const   std::string_view& endpoint, json body) {
 }
 void HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
     dotenv::init();
-    std::string credentials;
-    //set account type
-    //NEED TO PUT TRYS ROUND HERE 
+    const char* credentials;
+    //set account type - will need to add future settings
     switch(type){
         case AccountSubType::Stocks:
-            credentials = std::string(std::getenv("API_KEY_IDSTOCKS")) + ":" + std::string(std::getenv("API_SECRET_STOCKS"));
+            credentials = Config::API_KEY_ID_STOCKS + ':' + Config::API_SECRET_STOCKS;
             break;
         default:
-            std::cout << "Before setting type" << std::endl;
-            credentials = std::string(std::getenv("API_KEY_ID_STOCKSISA")) + ":" + std::string(std::getenv("API_SECRET_STOCKSISA"));
-            std::cout << "After setting type" << std::endl;
+            credentials = Config::API_KEY_ID_STOCKSISA + ':' + Config::API_SECRET_STOCKSISA;
             break;
     }
 
 
-    std::string encoded = to_base64(credentials);
+    const char* encoded = to_base64(credentials);
 
 
     httplib::Headers headers = {{"Authorization", "Basic " + encoded}};
@@ -92,7 +89,7 @@ void HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
     cli.set_write_timeout(5, 0);
     cli.set_connection_timeout(5, 0); 
 
-    std::cout << "api_host constructed" << std::endl;
+    #std::cout << "api_host constructed" << std::endl;
 }
 
 std::string HttpLibWrap::downloadCSV(const std::string& link){

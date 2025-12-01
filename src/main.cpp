@@ -1,7 +1,7 @@
 #include <iostream>
 #include "HttpLibWrap.h"
 #include <string>
-#include <dotenv.h>
+#include "config.hpp"
 #include <string_view>
 #include "AccountSubType.h"
 #include "PortfolioManager.h"
@@ -17,7 +17,7 @@ int main() {
 
     //create APIWrapper class
     try{
-        HttpLibWrap stocksISAAPI = HttpLibWrap(std::getenv("API_HOST"));
+        HttpLibWrap stocksISAAPI = HttpLibWrap(Config::API_HOST);
 
         CSVReportReader CSVReader = CSVReportReader();
         PortfolioStats stats = PortfolioStats();
