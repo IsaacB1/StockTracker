@@ -1,0 +1,3 @@
+/Users/isaac/Documents/PlatformIO/Projects/Isaac-Stock-Tracker/build/CMakeFiles/isaacStocks.dir
+/Users/isaac/Documents/PlatformIO/Projects/Isaac-Stock-Tracker/build/CMakeFiles/edit_cache.dir
+/Users/isaac/Documents/PlatformIO/Projects/Isaac-Stock-Tracker/build/CMakeFiles/rebuild_cache.dir

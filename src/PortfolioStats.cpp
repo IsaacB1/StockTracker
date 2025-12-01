@@ -4,7 +4,7 @@
 #include <iostream>
 #include "CSVReportReader.h"
 
-void PortfolioStats::updateStats(const double& total_invested, const double& curr_value, const double& total_free) noexcept{
+void PortfolioStats::updateStats(const double& total_invested, const double& curr_value, const double& total_free) noexcept {
     this->set_total_invested(total_invested);
     this->set_curr_value(curr_value);
     this->set_total_made( curr_value - total_invested);
