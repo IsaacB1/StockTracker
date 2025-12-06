@@ -21,7 +21,7 @@ class PortfolioManager : IPortfolioManager{
         void updateAccountSubType(const AccountSubType& newType) noexcept;
         bool getAccountInfo();
         bool getAccountHistory();
-        bool readInCSV(const std::string& filePath);
+        bool readInCSV();
 };
 
 #endif  

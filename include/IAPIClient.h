@@ -1,24 +1,18 @@
 #ifndef IAPICLIENT_H
 #define IAPICLIENT_H
 #include "AccountSubType.h"
-#include <string>
-#include <json.hpp>
+#include "cJSON.h"
+#include <memory>
 
-using json = nlohmann::json;
+using cJson_ptr = std::unique_ptr<cJSON, decltype(&cJSON_Delete)>;
 
-//create custom APIResponse struct
-struct APIResponse{
-    int status;
-    std::string body;
-};
 
 //API methods
 class IAPIClient {
     public:
         virtual ~IAPIClient() = default;
-        virtual APIResponse get(const   std::string_view& endpoint) = 0;
-        virtual APIResponse post(const   std::string_view& endpoint, const json body) = 0;
-        virtual void updateAccountSubType(const AccountSubType& newType) noexcept = 0;
+        virtual bool get(const char* endpoint, char* response_buffer) = 0;
+        virtual bool post(const char* endpoint, cJson_ptr& body, char* response_buffer) = 0;
 };
 
 #endif

@@ -1,11 +1,18 @@
+#include <Arduino.h>
 #include "IPortfolioManager.h"
 #include "PortfolioManager.h"
-#include <dotenv.h>
 #include "config.hpp"
 #include <json.hpp>
 #include "PortfolioStats.h"
 #include <chrono>
 #include <thread>
+#include "cJSON.h"
+#include "SPIFFS.h"
+
+#define FILE_NAME "/accountInfo.csv"
+#define ITEM_SIZE 1
+
+using cJson_ptr = std::unique_ptr<cJSON, decltype(&cJSON_Delete)>;
 
 // Implementation of PortfolioManager constructor
 PortfolioManager::PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController, CSVReportReader& CSVReader, PortfolioStats& stats)
@@ -27,175 +34,61 @@ void PortfolioManager::updateAccountSubType(const AccountSubType& newType) noexc
 }
 
 bool PortfolioManager::getAccountInfo(){
-    dotenv::init();
-    using json = nlohmann::json;
 
-    try{
-        APIResponse response;
-        response = apiController.get(Config::T212_ACCOUNT_INFO_ENDPOINT);
+    char buffer[1024];
+    bool response = apiController.get(Config::T212_ACCOUNT_INFO_ENDPOINT, buffer);
 
-        if(response.status == 200){
-
-            std::cout << response.body <<std::endl;
-            //Using json.hpp to parse the json 
-            try{
-                json apiResponse = json::parse(response.body);
-
-                stats.updateStats(apiResponse["invested"], apiResponse["total"], apiResponse["free"]);
-                stats.printStats();
-
-                return true;
-            }catch(const json::parse_error& e){
-                std::cerr << "Failed to parse accountvalue api response: " << e.what() << std::endl;
-
-                return false;
-            }
-        }else{
-            std::cerr << "Response code " << response.status << "recieved" << std::endl;
-            return false;
-        }
-
-    }catch(const std::runtime_error& e){
-        std::cerr << "Failed to get .env value - endpoint: " << e.what() << std::endl;
+    if(response){
+        Serial.println(buffer);
+        return true;
+    }else{
+        Serial.println("Failed to get account info");
         return false;
     }
+
 }
 
 bool PortfolioManager::getAccountHistory(){
-    //will return APIRepsonse type with reportId as body and status as status
+    //creates our json object
+    const char* time_from = "2025-01-01T00:00:00Z";
+    const char* time_to  = "2025-12-06T00:00:00Z";
+    cJson_ptr json(cJSON_CreateObject(), cJSON_Delete);
 
-    //gets present day  NEEDS TO BE IN OWN FUNCTION 
-    auto now = std::chrono::system_clock::now() - std::chrono::minutes(1);
-    std::time_t t_now = std::chrono::system_clock::to_time_t(now);
-    std::tm tm_utc;
-    gmtime_r(&t_now, &tm_utc);
+    cJson_ptr dataIncluded(cJSON_CreateObject(), cJSON_Delete);
+    cJSON_AddBoolToObject(dataIncluded.get(), "includeDividends", true);
+    cJSON_AddBoolToObject(dataIncluded.get(), "includeInterest", true);
+    cJSON_AddBoolToObject(dataIncluded.get(), "includeOrders", true);
+    cJSON_AddBoolToObject(dataIncluded.get(), "includeTransactions", true);
 
-    std::ostringstream oss;
-    oss << std::put_time(&tm_utc, "%Y-%m-%dT%H:%M:%SZ");
+    cJSON_AddItemToObject(json.get(), "dataIncluded" , dataIncluded.release());
+    cJSON_AddStringToObject(json.get(), "timeFrom" , time_from);
+    cJSON_AddStringToObject(json.get(), "timeTo" , time_to);
 
-    //create body to get parsed 
-    nlohmann::json body = { {"dataIncluded", {{"includeDividends", true},{"includeInterest", true},{"includeOrders", true},{"includeTransactions", true}}},{"timeFrom", "2025-01-01T00:00:00Z"},{"timeTo", oss.str()}
-    };
+    char response_buffer_link[1024];
+    bool response = apiController.post(Config::T212_REQUEST_CSV_GEN, json, response_buffer_link);
+    
+    if(response){
+        bool download_response = apiController.downloadCSV(response_buffer_link);
 
-    std::cout << "making post call" << std::endl;
-    try{
-        APIResponse requestIdResponse = apiController.post(Config::T212_REQUEST_CSV_GEN, body);
-        
-        try{
-            std::cout << requestIdResponse.body << std::endl;
-            json requestIdApiResponse = json::parse(requestIdResponse.body);
+        if(download_response){
+            //at this point its been saved as a file
+            //reads in file line by line
+            bool readInCSV = this->readInCSV();
 
-            std::cout << requestIdApiResponse << std::endl;
-
-            //need a try here YES I DO
-            int requestId = requestIdApiResponse["reportId"].get<int>();
-            
-            //now do the get request 
-            std::string endpoint = Config::T212_REQUEST_CSV_GEN;
-            //endpoint = endpoint + "/" + std::to_string(requestId);
-            ///std::cout << endpoint << std::endl;
-
-            //chill for 20 seconds as it takes a sec to get the report ready
-            std::this_thread::sleep_for(std::chrono::milliseconds(20000));
-
-            //sort out here may need to do a time out as 404 means it hasnt generated the page yet
-            APIResponse historyResponse;
-            try{
-                int maxRetries = 30;
-                //1 Minute as thats what the API limits this to
-                int retryDelayMs = 60000;
-
-                for (int i = 0; i < maxRetries; ++i) {
-                    historyResponse = apiController.get(endpoint);
-
-                    if (historyResponse.status == 200) {
-                        std::cout << "Export ready, processing..." << std::endl;
-                        json historyApiResponse = json::parse(historyResponse.body);
-                        const json latestReport = historyApiResponse.back();
-                        if (latestReport["status"] != "Finished"){
-                            std::cout << "Report Not ready yet waiting 20 seconds minute" << std::endl;
-                            std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
-                        }else{
-                            break;
-                        }
-                    } else if (historyResponse.status == 404) {
-                        std::cout << "Export not ready yet (status 404), retrying..." << std::endl;
-                        std::cout << "Potiential body " << historyResponse.body << std::endl;
-                        std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
-                    } else if (historyResponse.status == 429){
-                        throw std::runtime_error("Too many requests");
-                    } else {
-                        std::cerr << "Unexpected status: " << historyResponse.status << std::endl;
-                        break;
-                    }
-                }
-
-            }catch(const std::runtime_error& e){
-                std::cerr << "Caught runtime error: " << e.what() << std::endl;
-            }
-            
-
-            //now sort out json response
-            try{
-
-                //std::cout << historyResponse.body << std::endl;
-                
-                json historyApiResponse = json::parse(historyResponse.body);
-
-                //std::cout << historyApiResponse << std::endl;
-
-                //for this we need to parse based off 
-                /* "dataIncluded": {
-                    "includeDividends": true,
-                    "includeInterest": true,
-                    "includeOrders": true,
-                    "includeTransactions": true
-                }, */
-                
-                const json latestReport = historyApiResponse.back();
-                std::cout << latestReport << std::endl;
-
-                std::string link = latestReport["downloadLink"];
-                std::string status = latestReport["status"];
-                std::string timeFrom = latestReport["timeFrom"];
-                std::string timeTo = latestReport["timeTo"];
-
-                std::cout << link << std::endl;
-                
-                try{
-                    std::string filePath = apiController.downloadCSV(link);
-
-                    if (this->readInCSV(filePath)){
-                        //success
-                        this->stats.printStats();
-                    }else{
-                        std::cout << "Error reading file";
-                    }
-                }catch(const std::runtime_error& e){
-                    std::cerr << e.what() << std::endl;
-                }
-            }catch(const json::parse_error& e){
-                std::cerr << "JSON parse error when trying to parse historyAPI response " << e.what() << std::endl;
-            }
-        }catch(const json::parse_error& e){
-            std::cerr << "Failed to get requestId from POST call " << e.what() << std::endl;
-        }
-    }catch(const std::runtime_error& e){
-        std::cerr << "Failed to get .env value: T212_REQUEST_CSV_GEN " << e.what() << std::endl;
-    }
-    return false;
+            if(!readInCSV){return false;}
+        }else{Serial.println("Failed to downlaod file"); return false;}
+    }else{ Serial.println("Call failed -> or didnt even work"); return false;}
+    return true;
 }
 
-bool PortfolioManager::readInCSV(const std::string& filePath){
-    this->CSVReader.setFilePath(filePath);
-
-    try{
-        //reads in file and populates the portfolioStats
-        this->stats.syncStocks(this->CSVReader.readInFile());
-        return true;
-
-    }catch(const std::invalid_argument& e){
-        std::cerr << e.what() << std::endl;
-        return false;
+//refactor to read in and call Stats for each line!
+bool PortfolioManager::readInCSV(){
+    File file = SPIFFS.open(FILE_NAME, FILE_READ);
+    if(!file){return false;}
+    while(file.available()){
+        const char* line = file.readStringUntil('\n').c_str();
+        Serial.println(line);
     }
+    file.close();
+    return true;
 }

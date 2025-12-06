@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <iostream>
 #include "HttpLibWrap.h"
 #include <string>
@@ -8,35 +9,30 @@
 #include "CSVReportReader.h"
 #include "PortfolioStats.h"
 
-
-//would be cool to implement multithreding here for API calls
-
-int main() {
-    dotenv::init();
+int run() {
     const AccountSubType accountSubType = AccountSubType::StocksISA;
 
-    //create APIWrapper class
-    try{
-        HttpLibWrap stocksISAAPI = HttpLibWrap(Config::API_HOST);
+    
+    HttpLibWrap stocksISAAPI = HttpLibWrap();
 
-        CSVReportReader CSVReader = CSVReportReader();
-        PortfolioStats stats = PortfolioStats();
+    CSVReportReader CSVReader = CSVReportReader();
+    PortfolioStats stats = PortfolioStats();
 
-        PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
+    PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
-        StocksISAManager.getAccountInfo();
+    StocksISAManager.getAccountInfo();
 
-        std::cout << "getting accout history" << std::endl;
+    std::cout << "getting accout history" << std::endl;
         StocksISAManager.getAccountHistory();
-
-        //create document reader and read in data
-        //NEED TO CHANGE PORTFOLIO MANAGER TO ACCEPT INSTANCE OF PORTFOLIO MANAGER!!!!
-
-    }catch(const std::runtime_error& e){
-        std::cerr << "Failed to get .env value - API host: " << e.what() << std::endl;
-        return 1;
-    }
 
 
     return 0;
 }
+
+//would be cool to implement multithreding here for API calls
+void setup() {
+    Serial.begin(115200);
+    // initialize your code
+    run();
+}
+void loop(){}
