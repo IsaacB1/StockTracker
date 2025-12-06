@@ -10,3 +10,4 @@ due to env
  - Integrate ESP SDK into program
  - GUI - choose and implement LVGl
  - set up SD card
+ - Implemetn logging -> built in for ESP32 ESP_LOGI
