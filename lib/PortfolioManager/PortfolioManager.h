@@ -18,7 +18,7 @@ class PortfolioManager : IPortfolioManager{
         PortfolioManager(const AccountSubType& type, HttpLibWrap& apiController, CSVReportReader& CSVReader, PortfolioStats& stats);
         
         ~PortfolioManager() = default;
-        void updateAccountSubType(const AccountSubType& newType) noexcept;
+        bool updateAccountSubType(const AccountSubType& newType) noexcept;
         bool getAccountInfo();
         bool getAccountHistory();
         bool readInCSV();

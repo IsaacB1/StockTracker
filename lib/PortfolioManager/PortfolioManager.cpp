@@ -2,7 +2,6 @@
 #include "IPortfolioManager.h"
 #include "PortfolioManager.h"
 #include "config.hpp"
-#include <json.hpp>
 #include "PortfolioStats.h"
 #include <chrono>
 #include <thread>
@@ -29,16 +28,20 @@ bool PortfolioManager::update(Stock newStock) {
 }*/
 
 // Implementation of updateAccountSubType
-void PortfolioManager::updateAccountSubType(const AccountSubType& newType) noexcept {
+bool PortfolioManager::updateAccountSubType(const AccountSubType& newType) noexcept {
 	type = newType;
+    bool result = apiController.updateAccountSubType(newType);
+    return result;
 }
 
 bool PortfolioManager::getAccountInfo(){
 
-    char buffer[1024];
-    bool response = apiController.get(Config::T212_ACCOUNT_INFO_ENDPOINT, buffer);
-
+    const size_t buffer_size = 1024;
+    static char buffer[buffer_size];
+    bool response = apiController.get(Config::T212_ACCOUNT_INFO_ENDPOINT, buffer, buffer_size);
+    Serial.println(response);
     if(response){
+        Serial.println("Succeeded");
         Serial.println(buffer);
         return true;
     }else{

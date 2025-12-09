@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <iostream>
 #include "HttpLibWrap.h"
 #include <string>
 #include "config.hpp"
@@ -10,21 +9,18 @@
 #include "PortfolioStats.h"
 
 int run() {
+    Serial.println("Starting");
     const AccountSubType accountSubType = AccountSubType::StocksISA;
-
     
     HttpLibWrap stocksISAAPI = HttpLibWrap();
-
+    stocksISAAPI.wifiSetup();
     CSVReportReader CSVReader = CSVReportReader();
     PortfolioStats stats = PortfolioStats();
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
     StocksISAManager.getAccountInfo();
-
-    std::cout << "getting accout history" << std::endl;
-        StocksISAManager.getAccountHistory();
-
+    StocksISAManager.getAccountHistory();
 
     return 0;
 }
@@ -33,6 +29,8 @@ int run() {
 void setup() {
     Serial.begin(115200);
     // initialize your code
+    delay(1000);
     run();
 }
-void loop(){}
+void loop(){
+}
