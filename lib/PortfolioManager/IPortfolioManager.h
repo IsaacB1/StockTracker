@@ -1,4 +1,3 @@
-#include "PortfolioStats.h"
 #include "AccountSubType.h"
 
 #ifndef IPORTFOLIOMANAGER_H
@@ -16,7 +15,7 @@ class IPortfolioManager {
         //need to pass some input from APi to fill stocks vector
         //need to pass aome input here as well
         //bool IPortfolioManager::update(Stock newStock);
-        void updateAccountSubType(const AccountSubType& newType) noexcept;
+        bool updateAccountSubType(const AccountSubType& newType) noexcept;
         ~IPortfolioManager() = default;
 }; 
 
