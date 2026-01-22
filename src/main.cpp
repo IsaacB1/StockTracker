@@ -11,7 +11,7 @@
 int run() {
     Serial.println("Starting");
     const AccountSubType accountSubType = AccountSubType::StocksISA;
-    
+
     HttpLibWrap stocksISAAPI = HttpLibWrap();
     stocksISAAPI.wifiSetup();
     CSVReportReader CSVReader = CSVReportReader();
@@ -19,8 +19,8 @@ int run() {
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
-    StocksISAManager.getAccountInfo();
-    StocksISAManager.getAccountHistory();
+    //StocksISAManager.getAccountInfo();
+    //StocksISAManager.getAccountHistory();
 
     return 0;
 }

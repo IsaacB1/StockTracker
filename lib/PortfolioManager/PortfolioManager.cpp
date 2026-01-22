@@ -7,6 +7,7 @@
 #include <thread>
 #include "cJSON.h"
 #include "SPIFFS.h"
+#include <cstring>
 
 #define FILE_NAME "/accountInfo.csv"
 #define ITEM_SIZE 1
@@ -67,20 +68,30 @@ bool PortfolioManager::getAccountHistory(){
     cJSON_AddStringToObject(json.get(), "timeFrom" , time_from);
     cJSON_AddStringToObject(json.get(), "timeTo" , time_to);
 
-    char response_buffer_link[1024];
-    bool response = apiController.post(Config::T212_REQUEST_CSV_GEN, json, response_buffer_link);
+    const size_t buffer_size = 64;
+    char response_report_id[buffer_size];
+    bool response = apiController.post(Config::T212_REQUEST_CSV_GEN, json, response_report_id, buffer_size);
     
     if(response){
-        bool download_response = apiController.downloadCSV(response_buffer_link);
+        //get the report via get
+        const size_t download_link_buffer_size = 1028;
+        //more ;ike all report download links
+        char download_link_buffer[download_link_buffer_size];
+        Serial.println("Waiting on download link");
+        delay(60000);
+        bool get_download_link = apiController.get(Config::T212_REQUEST_CSV_GEN, download_link_buffer, download_link_buffer_size, response_report_id);
 
-        if(download_response){
-            //at this point its been saved as a file
-            //reads in file line by line
-            bool readInCSV = this->readInCSV();
+        if(get_download_link){
+            //NOW DOWNLOAD file using the link
+            if(apiController.downloadCSV(download_link_buffer)){
+                Serial.println("File downloaded successfully");
+                return true;
 
-            if(!readInCSV){return false;}
-        }else{Serial.println("Failed to downlaod file"); return false;}
-    }else{ Serial.println("Call failed -> or didnt even work"); return false;}
+            }else{Serial.println("Error - File not downloaded"); return false;}
+
+        
+        }else{Serial.println("Invalid download link"); return false;}
+    }
     return true;
 }
 
