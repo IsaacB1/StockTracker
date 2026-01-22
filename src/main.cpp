@@ -19,8 +19,8 @@ int run() {
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
-    //StocksISAManager.getAccountInfo();
-    //StocksISAManager.getAccountHistory();
+    StocksISAManager.getAccountInfo();
+    StocksISAManager.getAccountHistory();
 
     return 0;
 }
