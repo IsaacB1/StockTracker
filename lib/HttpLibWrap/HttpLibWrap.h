@@ -37,7 +37,9 @@ class HttpLibWrap : public IAPIClient{
         ~HttpLibWrap() = default;
         void wifiSetup();
         bool get(const char* endpoint, char* response_buffer, size_t buffer_size) override;
-        bool post(const char* endpoint, cJson_ptr& body, char* response_buffer) override;
+        bool getLink(const char* link, char* response_buffer, size_t buffer_size) override;
+        bool get(const char* endpoint, char* response_buffer, size_t buffer_size, char* report_id);
+        bool post(const char* endpoint, cJson_ptr& body, char* response_buffer, size_t buffer_size) override;
         //wont be implemented but could be used to connet to my server to store data
         bool updateAccountSubType(const AccountSubType& newType) noexcept;
         bool downloadCSV(const char* link);

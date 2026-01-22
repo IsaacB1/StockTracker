@@ -22,10 +22,8 @@ using cJson_ptr = std::unique_ptr<cJSON, decltype(&cJSON_Delete)>;
 
 //default set to StocksISA account
 HttpLibWrap::HttpLibWrap(){
-    secureClient.setCACert(trading212_root_ca);
-}
+    secureClient.setCACert(trading212_ca_bundle);
 
-HttpLibWrap::HttpLibWrap(char test){
 }
 
 void HttpLibWrap::wifiSetup(){
@@ -59,6 +57,65 @@ void HttpLibWrap::wifiSetup(){
     }
 }
 
+bool readDownloadLink(WiFiClient* stream, char* download_link_buffer, size_t download_link_buffer_size){
+    //read in chars in buffer -> bit by bit
+    char chunk[512] = {0}; //sets every byte to 0
+    size_t latest_len = 0; //for size meaning we can check if latest_len = 0 then hasnt been done corectly
+
+    const char key[] = "\"downloadLink\":\"";
+    const size_t key_len = sizeof(key) - 1;
+
+    //for matching the stream with downlaod link
+    size_t match = 0; //Number of characters weve matched so far 
+    bool capturing = false;
+
+    while(stream->connected() && stream->available()){
+        //reading one Byte at a time -> due to network splitting packets
+        char c;
+        //tryes to read N Bytes from stream -> save to char c 
+        //-> if N bytes read == to Bytes we wanted to read then GOOD
+        if (stream->readBytes(&c, 1) != 1) continue;
+
+        if(!capturing){
+            //if byte weve just got == to the index of the key we are checking against 
+            if (c == key[match]){
+                //success so 
+                match++;
+                //check if weve completed the whole thing
+                if(match == key_len){
+                    capturing = true;
+                    latest_len = 0;
+                }
+            }else{
+                if(c == key[0]){
+                    match = 1;
+                }else{
+                    match = 0;
+                }
+            }
+        }else{
+            //this is once capturing == true
+            //if at end of link
+            if(c == '"'){
+                chunk[latest_len] = '\0';
+                capturing = false;
+                Serial.println(chunk);
+            }else if(latest_len < sizeof(chunk) - 1){
+                chunk[latest_len] = c;
+                latest_len++;
+            }
+        }
+    }
+    Serial.println("Outside While loop");
+    if(latest_len < download_link_buffer_size){
+        strncpy(download_link_buffer, chunk, download_link_buffer_size - 1);
+        return true;
+    }else{
+        Serial.println("Need to set tempoary chunk and download_link_buffer to be same size please");
+        return false;
+    }
+}
+
 //ARGUMENTS -> Endpoint (place to reach) -> Buffer (what we store response in )
 bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer_size) {
     
@@ -89,12 +146,24 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
             //check length of response
             //int len = esp_http_client_read(client_get, response_buffer, sizeof(response_buffer) -1);
             String response = http.getString();
+
+            /*
+            Serial.println(buffer_size);
+            Serial.println(response.length());
+            Serial.println(response);
+            */
+
             if(response.length() < buffer_size){
                 strncpy(response_buffer, response.c_str(), buffer_size - 1);
                 response_buffer[buffer_size - 1] = '\0';
                 return true;
+            }else{
+                //Serial.println(response);
+                //Serial.println(response.length());
+                //Serial.println(buffer_size);
+                Serial.println("Failed to copy response into buffer - response too large");
+                return false;
             }
-            return false;
         }
         case 401: {
             Serial.println("Bad 401 Error: ");
@@ -108,46 +177,172 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
     }
 }
 
-bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buffer){
+//ARGUMENTS -> Link (place to reach) -> Buffer (what we store response in )
+bool HttpLibWrap::getLink(const char* link, char* response_buffer, size_t buffer_size) {
+
+
+    HTTPClient http;
+    http.setConnectTimeout(30000);  
+    // Begin connection with secure client
+    if (!http.begin(secureClient, link)) {
+        Serial.println("Failed to begin HTTP connection");
+        return false;
+    }
+    
+    // Set authorization header
+    http.addHeader("Authorization", this->credentials);
+    
+    // Perform GET request
+    Serial.println("Performing GET request...");
+    int status = http.GET();
+    //need to get the body in this 200
+    Serial.printf("Response code: %d\n", status);
+
+    switch (status){
+        case 200: {
+            WiFiClient* stream = http.getStreamPtr();
+            //turn stream into file now
+        }
+        case 401: {
+            Serial.println("Bad 401 Error: ");
+            return false;
+        }
+        default:
+            return false;
+    }
+}
+
+//ARGUMENTS -> Endpoint (place to reach) -> Buffer (what we store response in ) -> report id for getting downlaod link of CSV generated, overrided get for filtering reportid client side
+bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer_size, char* report_id) {
+    
+    //make sure arguments are safe 
+    if (!endpoint || !response_buffer || buffer_size == 0 || !report_id) {
+        Serial.println("Invalid arguments");
+        return false;
+    }
+
+    static char full_url[256];
+
+    //snsprintf - safe string formattingn - not safe alwyas apparantley 
+    snprintf(full_url, sizeof(full_url), "%s%s", Config::API_HOST, endpoint);
+
+    HTTPClient http;
+    http.setConnectTimeout(30000);  
+    // Begin connection with secure client
+    if (!http.begin(secureClient, full_url)) {
+        Serial.println("Failed to begin HTTP connection");
+        return false;
+    }
+    
+    // Set authorization header
+    http.addHeader("Authorization", this->credentials);
+    
+    // Perform GET request
+    Serial.println("Performing GET request...");
+
+    Serial.printf("Free heap before: %d bytes\n", ESP.getFreeHeap());
+    //CRASHING HERE CHECK
+    int status = http.GET();
+    //need to get the body in this 200
+    Serial.printf("Response code: %d\n", status);
+    switch (status){
+        case 200: {
+            //other statuses here
+            //2mb buffer
+            //check length of response
+            //int len = esp_http_client_read(client_get, response_buffer, sizeof(response_buffer) -1);
+            
+            /*
+            Serial.println(buffer_size);
+            Serial.println(response.length());
+            Serial.println(response);
+            */
+
+            WiFiClient* stream = http.getStreamPtr();
+
+            const size_t download_link_buffer_size = 512;
+            char download_link_buffer[download_link_buffer_size];
+
+            if (readDownloadLink(stream, response_buffer, buffer_size)){
+                Serial.println("Here");
+                return true;
+            }else{
+                return false;
+            }
+        }
+        case 401: {
+            Serial.println("Bad 401 Error: ");
+            Serial.println(http.getString());
+            return false;
+        }
+        
+        default:
+            //esp_http_client_cleanup(client_get);
+            return false;
+    }
+}
+
+bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buffer, size_t buffer_size){
     //need to add headers, post
 
     char full_url[256];
     //snsprintf - safe string formattingn
     snprintf(full_url, sizeof(full_url), "%s%s", Config::API_HOST, endpoint);
 
-    char* body_str = cJSON_PrintUnformatted(body.get());
-    if(!body){ return false;}
-
-    //pointer type to the request
-    esp_http_client_handle_t client_post = esp_http_client_init(&config_post);
-
-    esp_http_client_set_url(client_post, full_url);
-    esp_http_client_set_header(client_post, "Authorization", this->credentials);
-    esp_http_client_set_post_field(client_post, body_str, strlen(body_str));
-
-    esp_http_client_perform(client_post);
+    Serial.println("Full Url constructed");
+    HTTPClient http;
+    http.setConnectTimeout(30000);  
+    // Begin connection with secure client
+    if (!http.begin(secureClient, full_url)) {
+        Serial.println("Failed to begin HTTP connection");
+        return false;
+    }
     
-    int status = esp_http_client_get_status_code(client_post);
+    // Set authorization header
+    http.addHeader("Authorization", this->credentials);
+    
+    //this needs to change - needs to be configurable 
+    http.addHeader("Content-Type", "application/json");
 
+    // Perform POST request
+    Serial.println("Performing POST request...");
+    
+    char* payload = cJSON_PrintUnformatted(body.get());
+    if (!payload) {
+        Serial.println("Invalid payload");
+        return false;
+    }
+    Serial.printf("%s\n", payload);
+    Serial.printf("Payload length: %d\n", strlen(payload));
+    Serial.printf("Free heap before: %d bytes\n", ESP.getFreeHeap());
+    int status = http.POST((uint8_t*)payload, strlen(payload));
+    delay(1000);
+    cJSON_free(payload);
     //need to get the body in this 200
+    Serial.printf("Response code: %d\n", status);
     switch (status){
         case 200: {
-        //other statuses here
-        //2mb buffer
-        //check length of response
-            int len = esp_http_client_read(client_post, response_buffer, sizeof(response_buffer) -1);
-            if (len > 0){ 
-                response_buffer[len] = '\0';
-                esp_http_client_cleanup(client_post);
+            //other statuses here
+            //2mb buffer
+            //check length of response
+            String response = http.getString();
+            Serial.println(response);
+            if(response.length() < buffer_size){
+                strncpy(response_buffer, response.c_str(), buffer_size - 1);
+                response_buffer[buffer_size - 1] = '\0';
                 return true;
-            }else{
-                //log error
-                esp_http_client_cleanup(client_post);
-                return false;
             }
+            Serial.println(response.length());
+            Serial.println(buffer_size);
+            Serial.println("Failed to copy response into buffer");
+            return false;
+        }
+
+        case 401:{
+            Serial.printf("Bad Reuqest %d error", status);
         }
         default:
-            esp_http_client_cleanup(client_post);
+
             return false;
     }
 }
@@ -177,58 +372,30 @@ bool HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
     }
     base64_output[olen] = '\0';
     snprintf(this->credentials, sizeof(this->credentials), "Basic %s", base64_output);
-    Serial.printf("Stocks credentials set: %s\n", this->credentials);
-
     return true;
 
 }
 
 bool HttpLibWrap::downloadCSV(const char* link){
+    Serial.println(link);
+    const size_t buffer_size = 2048;
+    char buffer[buffer_size];
+    this->getLink(link, buffer, buffer_size);
 
-    esp_http_client_config_t config_download = {
-    .url = link,
-    .method = HTTP_METHOD_GET,
-    .timeout_ms = 5000,
+    buffer[buffer_size] = '\0';
 
-    };
-    //pointer type to the request
-    esp_http_client_handle_t client_download = esp_http_client_init(&config_download);
-    esp_http_client_open(client_download, 0);
-    
-    int file_size = esp_http_client_fetch_headers(client_download);
-
-    //COULD CHANGE TO READIGN AND LOADING IN CHUNKS
-    //ASSUMING ITS NOT VER BIG
-    char buffer[2048];
-    //read in file
-    int len = esp_http_client_read(client_download, buffer, sizeof(buffer) -1);
-    if (len > 0){ 
-        buffer[len] = '\0';
-
-        if (!SPIFFS.begin(true)) {
-            Serial.println("Failed to mount SPIFFS");
-            return false;
-        }
-
-        //open file
-        File file = SPIFFS.open(FILE_NAME, FILE_WRITE);
-
-        if(!file){Serial.println("Failed to open for writing"); return false;}
-
-        //amount of bits written
-        size_t written = file.write((uint8_t*)buffer, len);
-        if (written != len) {return false;}
-        file.close();
-
-        esp_http_client_cleanup(client_download);
-        esp_http_client_cleanup(client_download);
-        return true;
-    }else{
-        //not enough space log
-        esp_http_client_cleanup(client_download);
-        esp_http_client_cleanup(client_download);
+    if (!SPIFFS.begin(true)) {
+        Serial.println("Failed to mount SPIFFS");
         return false;
     }
 
+    //open file
+    File file = SPIFFS.open(FILE_NAME, FILE_WRITE);
 
+    if(!file){Serial.println("Failed to open for writing"); return false;}
+
+    //amount of bits written
+    size_t written = file.write((uint8_t*)buffer,buffer_size);
+    file.close();
+    return true;
 }
