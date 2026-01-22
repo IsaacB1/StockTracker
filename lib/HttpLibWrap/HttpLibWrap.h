@@ -10,27 +10,11 @@
 
 using cJson_ptr = std::unique_ptr<cJSON, decltype(&cJSON_Delete)>;
 
-inline esp_http_client_config_t config_get = {
-    .url = Config::API_HOST,
-    .method = HTTP_METHOD_GET,
-    .timeout_ms = 5000,
-    .crt_bundle_attach = arduino_esp_crt_bundle_attach,
-};
-
-inline esp_http_client_config_t config_post = {
-    .url = Config::API_HOST,
-    .method = HTTP_METHOD_POST,
-    .timeout_ms = 100000,
-    .transport_type = HTTP_TRANSPORT_OVER_SSL,
-    .crt_bundle_attach = arduino_esp_crt_bundle_attach,
-};
-
 //class used to implement httplib.h's methods for our uses.
 //also implements IAPIClient interface
 class HttpLibWrap : public IAPIClient{
     private:
         char credentials[256];
-        WiFiClientSecure secureClient;
     public:
         HttpLibWrap();
         HttpLibWrap(char test);
