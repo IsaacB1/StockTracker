@@ -20,10 +20,19 @@
 
 using cJson_ptr = std::unique_ptr<cJSON, decltype(&cJSON_Delete)>;
 
+bool spiffsSetup(){
+    if (!SPIFFS.begin(true)) {
+        Serial.println("Failed to mount SPIFFS");
+        return false;
+    }else{ return true;}
+}
+
 //default set to StocksISA account
 HttpLibWrap::HttpLibWrap(){
-    secureClient.setCACert(trading212_ca_bundle);
-
+    while( !spiffsSetup()){
+        Serial.println("Failed to mount SPIFFS");
+        delay(1);
+    }
 }
 
 void HttpLibWrap::wifiSetup(){
@@ -118,7 +127,9 @@ bool readDownloadLink(WiFiClient* stream, char* download_link_buffer, size_t dow
 
 //ARGUMENTS -> Endpoint (place to reach) -> Buffer (what we store response in )
 bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer_size) {
-    
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(trading212_ca_bundle);
+
     char full_url[256];
     //snsprintf - safe string formattingn
     snprintf(full_url, sizeof(full_url), "%s%s", Config::API_HOST, endpoint);
@@ -128,6 +139,7 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
     // Begin connection with secure client
     if (!http.begin(secureClient, full_url)) {
         Serial.println("Failed to begin HTTP connection");
+        http.end();
         return false;
     }
     
@@ -156,65 +168,89 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
             if(response.length() < buffer_size){
                 strncpy(response_buffer, response.c_str(), buffer_size - 1);
                 response_buffer[buffer_size - 1] = '\0';
+                http.end();
                 return true;
             }else{
                 //Serial.println(response);
                 //Serial.println(response.length());
                 //Serial.println(buffer_size);
                 Serial.println("Failed to copy response into buffer - response too large");
-                return false;
+                break;
             }
         }
         case 401: {
             Serial.println("Bad 401 Error: ");
             Serial.println(http.getString());
-            return false;
+            break;
         }
         
         default:
             //esp_http_client_cleanup(client_get);
             return false;
     }
+    http.end();
+    return false;
 }
 
 //ARGUMENTS -> Link (place to reach) -> Buffer (what we store response in )
 bool HttpLibWrap::getLink(const char* link, char* response_buffer, size_t buffer_size) {
-
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(trading212_ca_bundle);
 
     HTTPClient http;
     http.setConnectTimeout(30000);  
     // Begin connection with secure client
     if (!http.begin(secureClient, link)) {
         Serial.println("Failed to begin HTTP connection");
+        http.end();
         return false;
     }
     
-    // Set authorization header
-    http.addHeader("Authorization", this->credentials);
-    
     // Perform GET request
-    Serial.println("Performing GET request...");
+    Serial.println("Performing GET LINK request...");
     int status = http.GET();
     //need to get the body in this 200
     Serial.printf("Response code: %d\n", status);
 
     switch (status){
         case 200: {
-            WiFiClient* stream = http.getStreamPtr();
-            //turn stream into file now
+            //turn stream into passed buffer now
+            String response = http.getString();
+            if(response.length() < buffer_size){
+                WiFiClient& stream = http.getStream();
+                size_t total = 0;
+
+                while (http.connected() && total < buffer_size - 1) {
+                    if (stream.available()) {
+                        response_buffer[total++] = stream.read();
+                    } else {
+                        delay(1);
+                    }
+                }
+                response_buffer[total] = '\0';
+                http.end();
+                return true;
+            }else{
+                Serial.println("Buffer not large enough for CSV History size");
+                break;
+            }
         }
         case 401: {
             Serial.println("Bad 401 Error: ");
-            return false;
+            break;
         }
         default:
-            return false;
+            break;
     }
+    http.end();
+    return false;
 }
 
 //ARGUMENTS -> Endpoint (place to reach) -> Buffer (what we store response in ) -> report id for getting downlaod link of CSV generated, overrided get for filtering reportid client side
 bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer_size, char* report_id) {
-    
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(trading212_ca_bundle);
+
     //make sure arguments are safe 
     if (!endpoint || !response_buffer || buffer_size == 0 || !report_id) {
         Serial.println("Invalid arguments");
@@ -231,6 +267,7 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
     // Begin connection with secure client
     if (!http.begin(secureClient, full_url)) {
         Serial.println("Failed to begin HTTP connection");
+        http.end();
         return false;
     }
     
@@ -247,19 +284,8 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
     Serial.printf("Response code: %d\n", status);
     switch (status){
         case 200: {
-            //other statuses here
-            //2mb buffer
-            //check length of response
-            //int len = esp_http_client_read(client_get, response_buffer, sizeof(response_buffer) -1);
-            
-            /*
-            Serial.println(buffer_size);
-            Serial.println(response.length());
-            Serial.println(response);
-            */
-
             WiFiClient* stream = http.getStreamPtr();
-
+            
             const size_t download_link_buffer_size = 512;
             char download_link_buffer[download_link_buffer_size];
 
@@ -267,23 +293,26 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
                 Serial.println("Here");
                 return true;
             }else{
-                return false;
+                break;
             }
         }
         case 401: {
             Serial.println("Bad 401 Error: ");
             Serial.println(http.getString());
-            return false;
+            break;
         }
         
         default:
             //esp_http_client_cleanup(client_get);
-            return false;
+            break;
     }
+    http.end();
+    return false;
 }
 
 bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buffer, size_t buffer_size){
-    //need to add headers, post
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(trading212_ca_bundle);
 
     char full_url[256];
     //snsprintf - safe string formattingn
@@ -295,6 +324,7 @@ bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buf
     // Begin connection with secure client
     if (!http.begin(secureClient, full_url)) {
         Serial.println("Failed to begin HTTP connection");
+        http.end();
         return false;
     }
     
@@ -310,11 +340,14 @@ bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buf
     char* payload = cJSON_PrintUnformatted(body.get());
     if (!payload) {
         Serial.println("Invalid payload");
+        http.end();
         return false;
     }
+    /*
     Serial.printf("%s\n", payload);
     Serial.printf("Payload length: %d\n", strlen(payload));
-    Serial.printf("Free heap before: %d bytes\n", ESP.getFreeHeap());
+    Serial.printf("Free heap before: %d bytes\n", ESP.getFreeHeap());*/
+
     int status = http.POST((uint8_t*)payload, strlen(payload));
     delay(1000);
     cJSON_free(payload);
@@ -330,21 +363,24 @@ bool HttpLibWrap::post(const char* endpoint, cJson_ptr& body, char* response_buf
             if(response.length() < buffer_size){
                 strncpy(response_buffer, response.c_str(), buffer_size - 1);
                 response_buffer[buffer_size - 1] = '\0';
+                http.end();
                 return true;
             }
             Serial.println(response.length());
             Serial.println(buffer_size);
             Serial.println("Failed to copy response into buffer");
-            return false;
+            break;
         }
 
         case 401:{
             Serial.printf("Bad Reuqest %d error", status);
+            break;
         }
         default:
-
-            return false;
+            break;
     }
+    http.end();
+    return false;
 }
 
 bool HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
@@ -377,25 +413,62 @@ bool HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
 }
 
 bool HttpLibWrap::downloadCSV(const char* link){
-    Serial.println(link);
-    const size_t buffer_size = 2048;
-    char buffer[buffer_size];
-    this->getLink(link, buffer, buffer_size);
+    WiFiClientSecure secureClient;
+    secureClient.setCACert(trading212_ca_bundle);
 
-    buffer[buffer_size] = '\0';
-
-    if (!SPIFFS.begin(true)) {
-        Serial.println("Failed to mount SPIFFS");
+    HTTPClient http;
+    http.setConnectTimeout(30000);  
+    // Begin connection with secure client
+    if (!http.begin(secureClient, link)) {
+        Serial.println("Failed to begin HTTP connection");
+        http.end();
         return false;
     }
+    
+    // Perform GET request
+    Serial.println("Performing GET LINK request...");
+    int status = http.GET();
+    //need to get the body in this 200
+    Serial.printf("Response code: %d\n", status);
 
-    //open file
-    File file = SPIFFS.open(FILE_NAME, FILE_WRITE);
+    switch (status){
+        case 200: {
+            //turn stream into passed buffer now
+            File file = SPIFFS.open(FILE_NAME, FILE_WRITE);
+            if (!file) {
+                Serial.println("Failed to open file for writing");
+                http.end();
+                return false;
+            }
 
-    if(!file){Serial.println("Failed to open for writing"); return false;}
+            WiFiClient& stream = http.getStream();
+            uint8_t buf[256];
+            size_t totalWritten = 0;
 
-    //amount of bits written
-    size_t written = file.write((uint8_t*)buffer,buffer_size);
-    file.close();
-    return true;
+            while (stream.connected() || stream.available()) {
+                while (stream.available()) {
+                    int readLen = stream.readBytes(buf, min((size_t)stream.available(), sizeof(buf)));
+                    if (readLen > 0) {
+                        file.write(buf, readLen);
+                        totalWritten += readLen;
+                        Serial.println("HEREEEEEEEE");
+                    }
+                }
+                delay(1); // avoid blocking
+            }
+            file.close();
+            http.end();
+
+            Serial.printf("Finished writing file, total bytes: %d\n", totalWritten);
+            return true;
+        }
+        case 401: {
+            Serial.println("Bad 401 Error: ");
+            break;
+        }
+        default:
+            break;
+    }
+    http.end();
+    return false;
 }
