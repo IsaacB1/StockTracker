@@ -1,10 +1,5 @@
-#Shite
 .pio
-/.vscode
-/build/*
-*.pyc
-__pycache__/
+.vscode
+/build
 .DS_Store
-
-#My secret shite
 ./include/config.hpp
