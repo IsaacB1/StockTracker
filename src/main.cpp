@@ -7,8 +7,19 @@
 #include "PortfolioManager.h"
 #include "CSVReportReader.h"
 #include "PortfolioStats.h"
+#include "UserInter.h"
+#include <TFT_eSPI.h>
 
-int run() {
+TFT_eSPI tft = TFT_eSPI();
+
+int run( PortfolioManager StocksISAManager) {
+    StocksISAManager.getAccountInfo();
+    StocksISAManager.getAccountHistory();
+
+    return 0;
+}
+
+void setup() {
     Serial.println("Starting");
     const AccountSubType accountSubType = AccountSubType::StocksISA;
 
@@ -19,18 +30,39 @@ int run() {
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
-    StocksISAManager.getAccountInfo();
-    StocksISAManager.getAccountHistory();
 
-    return 0;
+    //set up screen
+
+    UserInter interface = UserInter();
+
+
+    run(StocksISAManager);
 }
 
+void loop(){}
+
+/*
 //would be cool to implement multithreding here for API calls
 void setup() {
     Serial.begin(115200);
-    // initialize your code
     delay(1000);
+    Serial.println("Booting");
+    // initialize your code
+    pinMode(22, OUTPUT); // DC
+    pinMode(4, OUTPUT);  // RST
+
+    digitalWrite(4, LOW);   // reset low
+    delay(100);
+    digitalWrite(4, HIGH);  // reset high
+    delay(100);
+
+    tft.begin();
+    tft.fillScreen(TFT_WHITE);
     run();
 }
 void loop(){
-}
+    tft.fillScreen(TFT_RED);
+    delay(1000);
+    tft.fillScreen(TFT_BLUE);
+    delay(1000);
+}*/
