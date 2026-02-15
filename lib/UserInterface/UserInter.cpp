@@ -5,6 +5,9 @@
 
 inline void initTextTable() {
     text_table['H'] = H;
+    text_table['E'] = E;
+    text_table['L'] = L;
+    text_table['O'] = O;
 }
 
 UserInter::UserInter(){
@@ -60,7 +63,7 @@ void UserInter::writeText(const char* text, const uint16_t& colour, const int& s
 }
 
 void UserInter::onStartup(){
-    const char* text = "HHHHHH";
+    const char* text = "HELLO";
     const int scale = 3;
     writeText(text,TFT_WHITE,scale,100,100);
 }
