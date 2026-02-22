@@ -8,6 +8,7 @@ inline void initTextTable() {
     text_table['E'] = E;
     text_table['L'] = L;
     text_table['O'] = O;
+    text_table['!'] = EXCLAMATION;
 }
 
 UserInter::UserInter(){
@@ -25,12 +26,10 @@ void UserInter::changeBackColour(const uint16_t newColour){
     this->tft.fillScreen(back_colour);
 }
 
-
-void UserInter::writeText(const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y){
+void UserInter::writeText(TFT_eSprite& sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y){
     const int letter_space = 1;
     int xOffset = 0;
 
-    TFT_eSprite sprite = TFT_eSprite(&this->tft);
     const int letter_height = 5;
     const int letter_width = 5 + letter_space;
     sprite.createSprite(scale * letter_width * strlen(text), scale*letter_height);
@@ -51,19 +50,39 @@ void UserInter::writeText(const char* text, const uint16_t& colour, const int& s
                     TFT_WHITE
                     );
                     sprite.pushSprite(x, y);
-                    delay(50);
+                    delay(15);
                 }
             }
         }
         xOffset += 5 *scale + letter_space;
         text++;
     }
-    delay(1000);
-    sprite.deleteSprite();
+
 }
 
+bool UserInter::cleanUpSprite(TFT_eSprite &sprite,const int& x, const int& y){
+    if(sprite.created()){
+        sprite.fillSprite(this->back_colour);
+        sprite.pushSprite(x,y);
+        sprite.deleteSprite();
+        return true;
+    }
+    return false;
+}
+
+
 void UserInter::onStartup(){
-    const char* text = "HELLO";
-    const int scale = 3;
-    writeText(text,TFT_WHITE,scale,100,100);
+    const char* text = "HELLO!";
+    const int scale = 2;
+
+    TFT_eSprite first_text = TFT_eSprite(&this->tft); 
+    writeText(first_text, text,TFT_WHITE,scale,100,100);
+
+    TFT_eSprite second_text = TFT_eSprite(&this->tft);;
+    writeText(second_text, text,TFT_WHITE,scale,105,105);
+
+    delay(1000);
+
+    if(cleanUpSprite(first_text,100,100)){Serial.println("First sprite deleted successfully");}
+    if(cleanUpSprite(second_text,105,105)){Serial.println("Second sprite deleted successfully");}
 }

@@ -11,7 +11,8 @@ class UserInter : public IUserInter {
         UserInter();
         void onStartup();
         void changeBackColour(const uint16_t newColour);
-        void writeText(const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y);
+        void writeText(TFT_eSprite& sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y);
+        bool cleanUpSprite(TFT_eSprite& sprite, const int& x, const int& y);
         ~UserInter() = default;
 };
 

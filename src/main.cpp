@@ -20,6 +20,7 @@ int run( PortfolioManager StocksISAManager) {
 }
 
 void setup() {
+    Serial.begin(115200);
     Serial.println("Starting");
     const AccountSubType accountSubType = AccountSubType::StocksISA;
 
