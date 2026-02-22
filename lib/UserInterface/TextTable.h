@@ -48,6 +48,14 @@ const uint8_t* O[5] = {
     ROW_FULL
 };
 
+const uint8_t* EXCLAMATION[5] = {
+    ROW_ONE_3,
+    ROW_ONE_3,
+    ROW_ONE_3,
+    ROW_EMPTY,
+    ROW_ONE_3
+};
+
 const uint8_t** text_table[128] = { nullptr }; 
 
 
