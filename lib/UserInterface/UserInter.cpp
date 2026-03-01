@@ -2,6 +2,7 @@
 #include "UserInter.h"
 #include "TextTable.h"
 #include <TFT_eSPI.h>
+#include <memory>
 
 inline void initTextTable() {
     text_table['H'] = H;
@@ -9,14 +10,21 @@ inline void initTextTable() {
     text_table['L'] = L;
     text_table['O'] = O;
     text_table['!'] = EXCLAMATION;
+    // letters required for the loading screen
+    text_table['A'] = A;
+    text_table['D'] = D;
+    text_table['I'] = I;
+    text_table['N'] = N;
+    text_table['G'] = G;
+    text_table['.'] = PERIOD;
 }
 
 UserInter::UserInter(){
     initTextTable();
-
     this->tft = TFT_eSPI();
     tft.init();
     tft.setRotation(1);
+
     this->changeBackColour(TFT_BLACK);
     this->onStartup();
 }
@@ -26,7 +34,7 @@ void UserInter::changeBackColour(const uint16_t newColour){
     this->tft.fillScreen(back_colour);
 }
 
-void UserInter::writeText(TFT_eSprite& sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y){
+void UserInter::writeText(TFT_eSprite &sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y){
     const int letter_space = 1;
     int xOffset = 0;
 
@@ -72,17 +80,26 @@ bool UserInter::cleanUpSprite(TFT_eSprite &sprite,const int& x, const int& y){
 
 
 void UserInter::onStartup(){
-    const char* text = "HELLO!";
+    uint16_t x = 5;
+    bool touched = tft.getTouch(&x, &x);
+    Serial.print("Touch Status: ");
+    Serial.println(touched ? "ALIVE" : "DEAD"); 
+}
+
+std::unique_ptr<TFT_eSprite> UserInter::startLoading(){
+    const char* text = "Loading...";
     const int scale = 2;
 
-    TFT_eSprite first_text = TFT_eSprite(&this->tft); 
-    writeText(first_text, text,TFT_WHITE,scale,100,100);
+    auto loading_text = std::make_unique<TFT_eSprite>(&this->tft);
+    writeText(*loading_text, text, TFT_WHITE, scale, 100, 100);
 
-    TFT_eSprite second_text = TFT_eSprite(&this->tft);;
-    writeText(second_text, text,TFT_WHITE,scale,105,105);
+    return loading_text;
+}
 
-    delay(1000);
-
-    if(cleanUpSprite(first_text,100,100)){Serial.println("First sprite deleted successfully");}
-    if(cleanUpSprite(second_text,105,105)){Serial.println("Second sprite deleted successfully");}
+bool UserInter::endLoading(std::unique_ptr<TFT_eSprite> loading_sprite){
+    if (loading_sprite && cleanUpSprite(*loading_sprite, 100, 100)) {
+        Serial.println("Loading sprite deleted successfully");
+        return true;
+    }
+    return false;
 }

@@ -9,12 +9,16 @@
 #include "PortfolioStats.h"
 #include "UserInter.h"
 #include <TFT_eSPI.h>
+#include <memory>
+
 
 TFT_eSPI tft = TFT_eSPI();
 
-int run( PortfolioManager StocksISAManager) {
+int run(PortfolioManager &StocksISAManager, UserInter &ui) {
+    std::unique_ptr<TFT_eSprite> loading_sprite = ui.startLoading();
     StocksISAManager.getAccountInfo();
     StocksISAManager.getAccountHistory();
+    ui.endLoading(std::move(loading_sprite));
 
     return 0;
 }
@@ -22,8 +26,9 @@ int run( PortfolioManager StocksISAManager) {
 void setup() {
     Serial.begin(115200);
     Serial.println("Starting");
-    const AccountSubType accountSubType = AccountSubType::StocksISA;
 
+    const AccountSubType accountSubType = AccountSubType::StocksISA;
+    UserInter ui = UserInter();
     HttpLibWrap stocksISAAPI = HttpLibWrap();
     stocksISAAPI.wifiSetup();
     CSVReportReader CSVReader = CSVReportReader();
@@ -34,36 +39,9 @@ void setup() {
 
     //set up screen
 
-    UserInter interface = UserInter();
-
-
-    run(StocksISAManager);
+    
+    run(StocksISAManager, ui);
 }
 
 void loop(){}
 
-/*
-//would be cool to implement multithreding here for API calls
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("Booting");
-    // initialize your code
-    pinMode(22, OUTPUT); // DC
-    pinMode(4, OUTPUT);  // RST
-
-    digitalWrite(4, LOW);   // reset low
-    delay(100);
-    digitalWrite(4, HIGH);  // reset high
-    delay(100);
-
-    tft.begin();
-    tft.fillScreen(TFT_WHITE);
-    run();
-}
-void loop(){
-    tft.fillScreen(TFT_RED);
-    delay(1000);
-    tft.fillScreen(TFT_BLUE);
-    delay(1000);
-}*/
