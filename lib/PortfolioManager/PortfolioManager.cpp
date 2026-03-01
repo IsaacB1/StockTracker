@@ -92,17 +92,31 @@ bool PortfolioManager::getAccountHistory(){
         
         }else{Serial.println("Invalid download link"); return false;}
     }
+
+    // should never reach here, but in case response was true and
+    // follow-up steps didn't return, return false as safeguard
+    return false;
+}
+
+//refactor to read in and call Stats for each line!
+bool PortfolioManager::readInCSVToCM(){
+    File file = SPIFFS.open(FILE_NAME, FILE_READ);
+    if(!file){Serial.println("No file available"); return false;}
+    while(file.available()){
+        String lineStr = file.readStringUntil('\n');
+        Serial.println(lineStr);
+    }
+    file.close();
     return true;
 }
 
 //refactor to read in and call Stats for each line!
 bool PortfolioManager::readInCSV(){
-    File file = SPIFFS.open(FILE_NAME, FILE_READ);
-    if(!file){return false;}
-    while(file.available()){
-        const char* line = file.readStringUntil('\n').c_str();
-        Serial.println(line);
+    if(!CSVReader.readInFile()){
+        Serial.println("CSV read failed");
+        return false;
     }
-    file.close();
+    // optionally dump or process actions
+    CSVReader.readOutActions();
     return true;
 }

@@ -20,6 +20,8 @@ int run(PortfolioManager &StocksISAManager, UserInter &ui) {
     StocksISAManager.getAccountHistory();
     ui.endLoading(std::move(loading_sprite));
 
+    StocksISAManager.readInCSV();
+
     return 0;
 }
 

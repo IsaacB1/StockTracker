@@ -3,41 +3,43 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "SPIFFS.h"
 
+#define FILE_NAME "/accountInfo.csv"
 
 CSVReportReader::CSVReportReader() : filePath(), actions(std::vector<Action>()){
 }
 
-//feels like this needs to be propelry returning errors rahter then booleans
-std::vector<Action>& CSVReportReader::readInFile(){
-
-    if(filePath.empty()){
-        throw std::invalid_argument("File path empty");
-    }
-    std::ifstream CSVFile(this->filePath);
-
-    if(!CSVFile){
-        throw std::invalid_argument("No file present");
-    }
-
-    std::string line;
-
-    // Skip header
-    std::getline(CSVFile, line);
-
-    // Read data lines
-    while (std::getline(CSVFile, line)) {
-        // Process each line
-        //std::cout << line << std::endl;
-        //this splits it and returns the values
-        //BUT WE SHOULD FIGURE A MORE EFFICENT WAY OF DOINT THIS CURRENTLY O(N^2) BUT GONNA BE O(N^3) if another loop
-        this->createAction(line);
-        
-    }
+std::vector<Action>& CSVReportReader::getActions(){
     return this->actions;
 }
 
-void CSVReportReader::createAction(const std::string& line){
+//feels like this needs to be propelry returning errors rahter then booleans
+bool CSVReportReader::readInFile(){
+
+    File file = SPIFFS.open(FILE_NAME, FILE_READ);
+    if(!file){Serial.println("No file available"); return false;}
+    bool first = true;
+    while(file.available()){
+        String lineStr = file.readStringUntil('\n');
+        const char* line = lineStr.c_str();
+        //Serial.println(line);
+        // don't spam the serial monitor with the header/first line
+        if (first) {
+            first = !first;
+        }else{
+        // parse each line; stop on first failure
+            if (!this->createAction(line)) {
+                Serial.println("Failed to parse CSV line");
+                return false;
+            }
+        }
+    }
+    file.close();
+    return true;
+}
+
+bool CSVReportReader::createAction(const std::string& line){
 
     std::stringstream ss(line);
     std::vector<std::string> values;
@@ -46,59 +48,72 @@ void CSVReportReader::createAction(const std::string& line){
 
     //this stores each value in one row into values-vector
     while(std::getline(ss, field, ',')){
-        //std::cout << field << std::endl;
         values.push_back(field);
     }
 
+    if (values.empty()) {
+        Serial.println("Action to create is empty");
+        return false;
+    }
     std::string type = values.front();
-    //checks action type
+    //Serial.println(type.c_str());
+    //Serial.println(values.size());
     if (type == "Deposit") {
+        // require at least 13 fields
+        if (values.size() > 12){Serial.println("Line not correct length"); return false;}
         Deposit dep;
-        //at the moment just assings while thing to date field in time will need to change
         Time depTime;
-        try{
-            depTime.date = values.at(1);
-            dep.id = values.at(5);
-            dep.total = std::stod(values.at(11));
-            dep.currency = values.at(12);
-
-            dep.time = depTime;
-            dep.print();
-            this->actions.push_back(dep);
-        }catch(const std::out_of_range& e){
-            std::cerr << "No value there " << e.what() << std::endl;
+        depTime.date = values[1];
+        dep.id = values[5];
+        try {
+            dep.total = std::stod(values[10]);
+        } catch (...) {
+            Serial.println("Failed to convert total string to int");
+            return false;
         }
-        
-
+        dep.currency = values[11];
+        dep.time = depTime;
+        this->actions.push_back(dep);
+        return true;
     } else if (type == "Market buy") {
+        if (values.size() > 12){ return false;}
         MarketBuy markBuy;
-        //at the moment just assings while thing to date field in time will need to change
         Time markBuyTime;
-        try{
-            markBuyTime.date = values.at(1);
-            markBuy.ISIN = values.at(2);
-            markBuy.ticker = values.at(3);
-            markBuy.Name = values.at(4);
-            markBuy.id = values.at(5);
-            markBuy.NoShares = std::stod(values.at(6));
-            markBuy.pricePerShare = std::stod(values.at(7));
-            markBuy.currencyPricePerShare = values.at(8);
-            markBuy.exchangeRate = std::stod(values.at(9));
-            markBuy.total = std::stod(values.at(11));
-            markBuy.currency = values.at(12);
-
-            markBuy.time = markBuyTime;
-            markBuy.print();
-            this->actions.push_back(markBuy);
-        }catch(const std::out_of_range& e){
-            std::cerr << "No value there " << e.what() << std::endl;
+        markBuyTime.date = values[1];
+        markBuy.ISIN = values[2];
+        markBuy.ticker = values[3];
+        markBuy.Name = values[4];
+        markBuy.id = values[5];
+        try {
+            markBuy.NoShares = std::stod(values[6]);
+            markBuy.pricePerShare = std::stod(values[7]);
+            markBuy.exchangeRate = std::stod(values[9]);
+            markBuy.total = std::stod(values[10]);
+        } catch (...) {
+            Serial.println("Failed to convert total string to int");
+            return false;
         }
-        
+        markBuy.currencyPricePerShare = values[8];
+        markBuy.currency = values[11];
+        markBuy.time = markBuyTime;
+        this->actions.push_back(markBuy);
+        return true;
     } else {
-        throw std::invalid_argument("Unknown action type: " + field);
+        Serial.println("Tryed to create unrecognised action");
+        return false;
     }
 }
 
 void CSVReportReader::setFilePath(const std::string& filePath) noexcept{
     this->filePath = filePath;
+}
+
+bool CSVReportReader::readOutActions(){
+    // `Action` is a std::variant<Deposit,MarketBuy> so we can't call
+    // `print()` on it directly.  Use std::visit to dispatch to the
+    // underlying type's member function.
+    for (Action &action : this->actions) {
+        std::visit([](auto &a) { a.print(); }, action);
+    }
+    return true;
 }
