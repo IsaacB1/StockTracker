@@ -11,3 +11,8 @@ due to env
  - GUI - choose and implement LVGl
  - set up SD card
  - Implemetn logging -> built in for ESP32 ESP_LOGI
+
+
+ # Current plan
+ - Implement history page from the current API's implemented, design to be decided
+ - In future we want individual stock checker (things like price per share w hen bought, price now, how much made)

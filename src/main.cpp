@@ -11,14 +11,18 @@
 #include <TFT_eSPI.h>
 #include <memory>
 
-
-TFT_eSPI tft = TFT_eSPI();
-
 int run(PortfolioManager &StocksISAManager, UserInter &ui) {
-    std::unique_ptr<TFT_eSprite> loading_sprite = ui.startLoading();
+    const char* account_info_text = "Making Get call ... Account Info";
+    const int account_info_x = 5;
+    const int account_info_y = 20;
+    const int account_info_scale = 1;
+    const int local_account_info_delay = 5;
+    std::unique_ptr<TFT_eSprite> getAccountInfoText = ui.displayText(account_info_text, TFT_RED, account_info_scale, account_info_x, account_info_y,local_account_info_delay);
     StocksISAManager.getAccountInfo();
+    ui.endDisplayText(std::move(getAccountInfoText), account_info_x, account_info_y);
+
     StocksISAManager.getAccountHistory();
-    ui.endLoading(std::move(loading_sprite));
+
 
     StocksISAManager.readInCSV();
 
@@ -28,20 +32,18 @@ int run(PortfolioManager &StocksISAManager, UserInter &ui) {
 void setup() {
     Serial.begin(115200);
     Serial.println("Starting");
+    UserInter ui = UserInter();
+    std::unique_ptr<TFT_eSprite> loading_sprite = ui.startLoading();
 
     const AccountSubType accountSubType = AccountSubType::StocksISA;
-    UserInter ui = UserInter();
+
     HttpLibWrap stocksISAAPI = HttpLibWrap();
-    stocksISAAPI.wifiSetup();
     CSVReportReader CSVReader = CSVReportReader();
     PortfolioStats stats = PortfolioStats();
 
     PortfolioManager StocksISAManager = PortfolioManager(accountSubType, stocksISAAPI, CSVReader, stats);
 
-
-    //set up screen
-
-    
+    ui.endLoading(std::move(loading_sprite));
     run(StocksISAManager, ui);
 }
 
