@@ -10,12 +10,18 @@ inline void initTextTable() {
     text_table['L'] = L;
     text_table['O'] = O;
     text_table['!'] = EXCLAMATION;
-    // letters required for the loading screen
     text_table['A'] = A;
+    text_table['C'] = C;
+    text_table['F'] = F;
+    text_table['K'] = K;
+    text_table['M'] = M;
+    text_table['T'] = T;
+    text_table['U'] = U;
     text_table['D'] = D;
     text_table['I'] = I;
     text_table['N'] = N;
     text_table['G'] = G;
+    text_table[' '] = SPACE;
     text_table['.'] = PERIOD;
 }
 
@@ -34,7 +40,7 @@ void UserInter::changeBackColour(const uint16_t newColour){
     this->tft.fillScreen(back_colour);
 }
 
-void UserInter::writeText(TFT_eSprite &sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y){
+void UserInter::writeText(TFT_eSprite &sprite, const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y, const int& local_delay){
     const int letter_space = 1;
     int xOffset = 0;
 
@@ -55,10 +61,10 @@ void UserInter::writeText(TFT_eSprite &sprite, const char* text, const uint16_t&
                     r * scale,
                     scale,
                     scale,
-                    TFT_WHITE
+                    colour
                     );
                     sprite.pushSprite(x, y);
-                    delay(15);
+                    delay(local_delay);
                 }
             }
         }
@@ -91,7 +97,7 @@ std::unique_ptr<TFT_eSprite> UserInter::startLoading(){
     const int scale = 2;
 
     auto loading_text = std::make_unique<TFT_eSprite>(&this->tft);
-    writeText(*loading_text, text, TFT_WHITE, scale, 100, 100);
+    writeText(*loading_text, text, TFT_WHITE, scale, 100, 100, 5);
 
     return loading_text;
 }
@@ -99,6 +105,22 @@ std::unique_ptr<TFT_eSprite> UserInter::startLoading(){
 bool UserInter::endLoading(std::unique_ptr<TFT_eSprite> loading_sprite){
     if (loading_sprite && cleanUpSprite(*loading_sprite, 100, 100)) {
         Serial.println("Loading sprite deleted successfully");
+        return true;
+    }
+    return false;
+}
+
+//Wrapper for write text I just need this to return the pointer
+std::unique_ptr<TFT_eSprite> UserInter::displayText(const char* text, const uint16_t& colour, const int& scale, const int& x, const int& y, const int& local_delay){
+    auto displayed_text = std::make_unique<TFT_eSprite>(&this->tft);
+    writeText(*displayed_text, text, TFT_WHITE, scale, x, y, local_delay);
+
+    return displayed_text;
+}
+
+bool UserInter::endDisplayText(std::unique_ptr<TFT_eSprite> display_text, const int& x, const int& y){
+    if (display_text && cleanUpSprite(*display_text, x, y)) {
+        Serial.println("Display text sprite deleted successfully");
         return true;
     }
     return false;

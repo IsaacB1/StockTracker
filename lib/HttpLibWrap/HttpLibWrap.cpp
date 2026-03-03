@@ -33,6 +33,7 @@ HttpLibWrap::HttpLibWrap(){
         Serial.println("Failed to mount SPIFFS");
         delay(1);
     }
+    this->wifiSetup();
 }
 
 void HttpLibWrap::wifiSetup(){
