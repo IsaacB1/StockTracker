@@ -25,6 +25,7 @@ const uint8_t ROW_THREE_1[5] = {1, 1, 1, 0, 0};
 const uint8_t ROW_THREE_2[5] = {1, 1, 0, 0, 1};
 const uint8_t ROW_THREE_3[5] = {1, 0, 1, 0, 1};
 const uint8_t ROW_THREE_4[5] = {1, 0, 0, 1, 1};
+const uint8_t ROW_THREE_5[5] = {0, 0, 1, 1, 1};
 
 constexpr uint8_t ROW_FOUR_1[5] = {1, 1, 1, 1, 0};
 constexpr uint8_t ROW_FOUR_2[5] = {1, 0, 1, 1, 1};
@@ -135,9 +136,41 @@ const uint8_t* O[5] = {
     ROW_FULL
 };
 
+const uint8_t* P[5] = {
+    ROW_FULL,
+    ROW_SIDES,
+    ROW_FULL,
+    ROW_ONE_1,
+    ROW_ONE_1
+};
+
+const uint8_t* R[5] = {
+    ROW_FULL,
+    ROW_SIDES,
+    ROW_FULL,
+    ROW_THREE_1,
+    ROW_THREE_5
+};
+
+const uint8_t* S[5] = {
+    ROW_FULL,
+    ROW_ONE_1,
+    ROW_FULL,
+    ROW_ONE_5,
+    ROW_FULL
+};
+
 const uint8_t* T[5] = {
     ROW_FULL,
     ROW_ONE_3,
+    ROW_ONE_3,
+    ROW_ONE_3,
+    ROW_ONE_3
+};
+
+const uint8_t* Y[5] = {
+    ROW_SIDES,
+    ROW_TWO_1,
     ROW_ONE_3,
     ROW_ONE_3,
     ROW_ONE_3
@@ -149,6 +182,14 @@ const uint8_t* U[5] = {
     ROW_SIDES,
     ROW_SIDES,
     ROW_FULL
+};
+
+const uint8_t* V[5] = {
+    ROW_SIDES,
+    ROW_TWO_1,
+    ROW_TWO_1,
+    ROW_ONE_3,
+    ROW_ONE_3
 };
 
 
