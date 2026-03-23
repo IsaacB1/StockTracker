@@ -12,19 +12,27 @@
 #include <memory>
 
 int run(PortfolioManager &StocksISAManager, UserInter &ui) {
+
     const char* account_info_text = "Making Get call ... Account Info";
     const int account_info_x = 5;
     const int account_info_y = 20;
     const int account_info_scale = 1;
     const int local_account_info_delay = 5;
+
     std::unique_ptr<TFT_eSprite> getAccountInfoText = ui.displayText(account_info_text, TFT_RED, account_info_scale, account_info_x, account_info_y,local_account_info_delay);
     StocksISAManager.getAccountInfo();
     ui.endDisplayText(std::move(getAccountInfoText), account_info_x, account_info_y);
 
+    const char* account_history_text = "Making Post call ... Account History";
+    std::unique_ptr<TFT_eSprite> getAccountHistoryInfoText = ui.displayText(account_history_text, TFT_RED, account_info_scale, account_info_x, account_info_y,local_account_info_delay);
     StocksISAManager.getAccountHistory();
+    ui.endDisplayText(std::move(getAccountHistoryInfoText), account_info_x, account_info_y);
 
-
+    const char* file_save_text = "Saving History to file ...";
+    std::unique_ptr<TFT_eSprite> savingFileText = ui.displayText(file_save_text, TFT_RED, account_info_scale, account_info_x, account_info_y,local_account_info_delay);
     StocksISAManager.readInCSV();
+    delay(2000);
+    ui.endDisplayText(std::move(savingFileText), account_info_x, account_info_y);
 
     return 0;
 }

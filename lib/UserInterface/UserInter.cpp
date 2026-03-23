@@ -17,10 +17,15 @@ inline void initTextTable() {
     text_table['M'] = M;
     text_table['T'] = T;
     text_table['U'] = U;
+    text_table['P'] = P;
+    text_table['V'] = V;
+    text_table['R'] = R;
+    text_table['S'] = S;
     text_table['D'] = D;
     text_table['I'] = I;
     text_table['N'] = N;
     text_table['G'] = G;
+    text_table['Y'] = Y;
     text_table[' '] = SPACE;
     text_table['.'] = PERIOD;
 }
