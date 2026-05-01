@@ -157,14 +157,7 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
             //other statuses here
             //2mb buffer
             //check length of response
-            //int len = esp_http_client_read(client_get, response_buffer, sizeof(response_buffer) -1);
             String response = http.getString();
-
-            /*
-            Serial.println(buffer_size);
-            Serial.println(response.length());
-            Serial.println(response);
-            */
 
             if(response.length() < buffer_size){
                 strncpy(response_buffer, response.c_str(), buffer_size - 1);
@@ -172,9 +165,6 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
                 http.end();
                 return true;
             }else{
-                //Serial.println(response);
-                //Serial.println(response.length());
-                //Serial.println(buffer_size);
                 Serial.println("Failed to copy response into buffer - response too large");
                 break;
             }
@@ -186,7 +176,6 @@ bool HttpLibWrap::get(const char* endpoint, char* response_buffer, size_t buffer
         }
         
         default:
-            //esp_http_client_cleanup(client_get);
             return false;
     }
     http.end();
@@ -391,7 +380,7 @@ bool HttpLibWrap::updateAccountSubType(const AccountSubType& type) noexcept{
 
     switch(type){
         case AccountSubType::Stocks: 
-            snprintf(this->credentials, sizeof(this->credentials), "%s:%s", Config::API_KEY_ID_STOCKS, Config::API_SECRET_STOCKS);
+            snprintf(auth_plain, sizeof(auth_plain), "%s:%s", Config::API_KEY_ID_STOCKS, Config::API_SECRET_STOCKS);
             break;
         case AccountSubType::StocksISA: 
             snprintf(auth_plain,sizeof(auth_plain),"%s:%s",Config::API_KEY_ID_STOCKSISA,Config::API_SECRET_STOCKSISA);
