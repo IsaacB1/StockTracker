@@ -22,6 +22,7 @@ class PortfolioManager : IPortfolioManager{
         bool getAccountInfo();
         bool getAccountHistory();
         bool readInCSV();
+        bool readInCSVToCM();
 };
 
 #endif  

@@ -1,6 +1,7 @@
 #ifndef CSVREPORTREADER_H
 #define CSVREPORTREADER_H
 
+#include <Arduino.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,9 +35,15 @@ struct Deposit{
     std::string currency;
     Time time;
     void print() const {
-        std::cout << "Deposit - Time: " << time.print() << ", ID: " << id 
-        << ", Total: " << total 
-        << " " << currency << std::endl;
+        String out = "Deposit - Time: ";
+        out += time.print().c_str();
+        out += ", ID: ";
+        out += id.c_str();
+        out += ", Total: ";
+        out += total;                      
+        out += " ";
+        out += currency.c_str();
+        Serial.println(out);
     }
 };
 
@@ -54,13 +61,23 @@ struct MarketBuy {
     std::string currency;
 
     void print() const {
-        std::cout << "Market Buy - Time: " << time.print()
-        << ", ID: " << id
-        << ", Ticker: " << ticker
-        << ", Shares: " << NoShares
-        << ", Price: " << pricePerShare << " Currency for price per share: " << currencyPricePerShare
-        << ", Total: " << total << " Currency: " 
-        << currency << std::endl;
+        String out = "Market Buy - Time: ";
+        out += time.print().c_str();
+        out += ", ID: ";
+        out += id.c_str();
+        out += ", Ticker: ";
+        out += ticker.c_str();
+        out += ", Shares: ";
+        out += NoShares;
+        out += ", Price: ";
+        out += pricePerShare;
+        out += " Currency for price per share: ";
+        out += currencyPricePerShare.c_str();
+        out += ", Total: ";
+        out += total;
+        out += " Currency: ";
+        out += currency.c_str();
+        Serial.println(out);
     }
 };
 
@@ -80,9 +97,10 @@ class CSVReportReader : public IDocumentReader {
         CSVReportReader();
         ~CSVReportReader() = default;
 
-        std::vector<Action>& readInFile();
+        bool readInFile();
         void setFilePath(const std::string& filePath) noexcept;
-        void createAction(const std::string& line);
-        void valueActionIterator(const std::vector<std::string>& values);
+        bool createAction(const std::string& line);
+        bool readOutActions();
+        std::vector<Action>& getActions();
 };
 #endif
