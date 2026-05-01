@@ -112,11 +112,11 @@ bool PortfolioManager::readInCSVToCM(){
 
 //refactor to read in and call Stats for each line!
 bool PortfolioManager::readInCSV(){
-    if(!CSVReader.readInFile()){
-        Serial.println("CSV read failed");
-        return false;
+    File file = SPIFFS.open(FILE_NAME, FILE_READ);
+    if(!file){Serial.println("No file available"); return false;}
+    while(file.available()){
+        String lineStr = file.readStringUntil('\n');
     }
-    // optionally dump or process actions
-    CSVReader.readOutActions();
+    file.close();
     return true;
 }
